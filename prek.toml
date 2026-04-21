@@ -1,0 +1,80 @@
+# prek.toml - Pre-commit hooks configuration
+# Uses prek (https://github.com/xxxserxxx/prek) - a fast, Rust-based pre-commit alternative
+# Install: pip install prek  OR  brew install prek
+# Setup: prek install
+# Manual run: prek run --all-files
+
+# Uncomment to prevent commits to master branch
+# [[repos]]
+# repo = "https://github.com/pre-commit/pre-commit-hooks"
+# rev = "v6.0.0"
+# hooks = [
+#   { id = "no-commit-to-branch", args = ["--branch", "master"] }
+# ]
+
+# Built-in hooks (fast, offline, Rust-based)
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace" },
+  { id = "mixed-line-ending" },
+  { id = "end-of-file-fixer" },
+  { id = "check-yaml" },
+  { id = "check-toml" },
+  { id = "check-json" },
+  { id = "check-merge-conflict" },
+]
+
+# Security and file checks
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+  { id = "detect-private-key" },
+  { id = "check-symlinks" },
+  { id = "fix-byte-order-marker" },
+  { id = "check-added-large-files" },
+  { id = "check-executables-have-shebangs" },
+  { id = "check-shebang-scripts-are-executable" },
+  { id = "pretty-format-json", args = ["--autofix", "--indent=2"], exclude_types = ["jupyter"] },
+]
+
+# Markdown formatting and linting
+[[repos]]
+repo = "https://github.com/rbubley/mirrors-prettier"
+rev = "v3.8.3"
+hooks = [
+  { id = "prettier", types_or = ["markdown", "shell", "toml", "yaml"] },
+]
+
+[[repos]]
+repo = "https://github.com/DavidAnson/markdownlint-cli2"
+rev = "v0.22.0"
+hooks = [
+  { id = "markdownlint-cli2", name = "markdown lint" },
+]
+
+# Shell script linting
+[[repos]]
+repo = "https://github.com/shellcheck-py/shellcheck-py"
+rev = "v0.11.0.1"
+hooks = [
+  { id = "shellcheck" },
+]
+
+# Python formatting and linting (for future Python scripts in skills)
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.15.11"
+hooks = [
+  { id = "ruff-format", types_or = ["python", "pyi"] },
+  { id = "ruff-check", types_or = ["python", "pyi"], args = ["--fix"] },
+]
+
+# Python type checking (for future Python scripts in skills)
+[[repos]]
+repo = "https://github.com/RobertCraigie/pyright-python"
+rev = "v1.1.408"
+hooks = [
+  { id = "pyright" },
+]
