@@ -29,6 +29,7 @@ Structured workflow: pull comments → create plan → get approval → implemen
 ### Phase 3: Validate
 
 Discover and run the repo's lint/test setup:
+
 - Check for config files (Makefile, .pre-commit-config.yaml, pyproject.toml, package.json, etc.)
 - Run lint/test commands the repo uses (may limit to only the affected files if appropriate)
 - Loop: fix failures → re-run until passing
@@ -46,12 +47,14 @@ Discover and run the repo's lint/test setup:
 
 1. Post approved replies to each thread explaining how it was addressed
    - Use a github tool or the `gh api` CLI to reply to specific threads, e.g.
+
    ```sh
    gh api -X POST repos/{owner}/{repo}/pulls/{pr_number}/comments \
       -f body="$REPLY_TEXT" \
       -F in_reply_to=$COMMENT_ID
    ```
-3. Update PR description if scope changed: `gh pr edit <PR> --body "<updated>"`
+
+2. Update PR description if scope changed: `gh pr edit <PR> --body "<updated>"`
 
 Never resolve reviewer threads.
 Leave that to the reviewer who posted the comment.

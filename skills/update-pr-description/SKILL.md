@@ -17,17 +17,19 @@ Fetch these in parallel:
 a. PR diff: get the full diff using a github tool or `gh pr diff` CLI
 
 b. PR template: look for template in repo in standard locations.
-   If none found, use a sensible default (summary, motivation, changes, testing).
+If none found, use a sensible default (summary, motivation, changes, testing).
 
 c. Existing description: fetch current PR body and identify:
-   - User content area (top section, before automation blocks) - may be empty or partially filled
-   - Automation blocks (stack managers, summary bots, CI status, etc.)
+
+- User content area (top section, before automation blocks) - may be empty or partially filled
+- Automation blocks (stack managers, summary bots, CI status, etc.)
 
 Automation blocks are typically delimited by `---` or HTML comments, contain bot signatures or tool markers, and sit at the bottom. If unsure whether a section is automation or user content, err on the side of preserving it.
 
 ### 2. Analyze Diff
 
 From the diff, extract:
+
 - Files changed and their purpose
 - Nature of changes (feature, fix, refactor, docs, etc.)
 - Key modifications (new functions, changed behavior, config updates)
@@ -36,11 +38,13 @@ From the diff, extract:
 ### 3. Apply Template and Fill Content
 
 Merge template with existing content:
+
 - Insert/update template sections in user content area only
 - Never modify automation blocks—preserve them exactly as found
 - Don't remove content the user may have intentionally added
 
 Fill in based on diff analysis:
+
 - Summary: concise description of what the PR does
 - Motivation: why this change is needed
 - Changes: what was modified, key files/components
@@ -48,7 +52,8 @@ Fill in based on diff analysis:
 - Ticket reference: link if known, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
 
 Result structure:
-```
+
+```markdown
 [PR template filled out from diff]
 
 [automation blocks preserved as-is]
@@ -58,7 +63,7 @@ Result structure:
 
 Backup the old description by appending it as a hidden HTML comment at the end of the new body:
 
-```
+```html
 <!-- pr-description-backup
 [old description here]
 -->
