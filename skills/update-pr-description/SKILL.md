@@ -1,25 +1,38 @@
 ---
 name: update-pr-description
 description: "Update PR description based on the diff, using repo template while preserving automation blocks. Fills out motivation, summary, and template fields from actual code changes."
-argument-hint: "Optionally specify PR number"
+argument-hint: "Specify PR number"
 ---
 
 # Update PR Description
 
 Update a PR description based on the diff: apply the repo's PR template, fill it out from the code changes, and preserve any automation-generated sections.
 
+## Formatting
+
+Take into consideration how GitHub renders markdown when formatting your markdown content.
+For example, to avoid spurious forced line breaks in the rendered PR description, do not hard-wrap paragraphs or bullet items at any column.
+Each paragraph and each bullet should be a single line, regardless of line length.
+
 ## Procedure
 
-### 1. Gather Context (parallelizable)
+### 1. Gather Context and Backup
 
 Fetch these in parallel:
 
-a. PR diff: get the full diff using a github tool or `gh pr diff` CLI
+- PR diff: get the full diff using a github tool or `gh pr diff` CLI.
+  Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using appropriate settings (e.g. `--no-pager` or `GH_PAGER=cat`).
+- PR template: look for template in repo in standard locations.
+  If none found, use a sensible default (summary, motivation, changes, testing).
+- Existing description: fetch current PR body save it as a backup markdown file to:
 
-b. PR template: look for template in repo in standard locations.
-If none found, use a sensible default (summary, motivation, changes, testing).
+```text
+.git/pr-descriptions/pr-<number>-backup-<timestamp>.md
+```
 
-c. Existing description: fetch current PR body and identify:
+Use ISO timestamp (e.g., `20260421T143022`). Create directory if needed.
+
+Then identify in the existing description:
 
 - User content area (top section, before automation blocks) - may be empty or partially filled
 - Automation blocks (stack managers, summary bots, CI status, etc.)
@@ -43,11 +56,10 @@ Merge template with existing content:
 - Never modify automation blocks—preserve them exactly as found
 - Don't remove content the user may have intentionally added
 
-Fill in based on diff analysis:
+Make sure to include the following information in the updated description:
 
-- Summary: concise description of what the PR does
-- Motivation: why this change is needed
-- Changes: what was modified, key files/components
+- Motivation: concise explanation of why this change is needed
+- Summary of changes: concise list of changes at a high-level
 - Testing: how it was tested, if evident
 - Ticket reference: link if known, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
 
@@ -61,12 +73,6 @@ Result structure:
 
 ### 4. Update the PR
 
-Backup the old description by appending it as a hidden HTML comment at the end of the new body:
+Use `gh pr edit <PR> --body "<updated>"` or equivalent tool to update the description.
 
-```html
-<!-- pr-description-backup
-[old description here]
--->
-```
-
-Then use `gh pr edit <PR> --body "<updated>"` or equivalent tool to update.
+The original description is already backed up to `.git/pr-descriptions/` from step 1, so no inline backup is needed.
