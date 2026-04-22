@@ -4,7 +4,7 @@ description: "Address unresolved PR review comments with a structured approval w
 argument-hint: "Specify PR number"
 ---
 
-# Address PR Review Comments
+# Address PR Review Comments with Lint/Test
 
 Structured workflow: pull comments → create plan → get approval → implement → validate → amend branch → reply to reviewers.
 
