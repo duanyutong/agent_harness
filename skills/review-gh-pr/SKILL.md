@@ -1,5 +1,5 @@
 ---
-name: review-pr
+name: review-gh-pr
 description: "Perform comprehensive code review and post review to the GitHub PR"
 argument-hint: "Optionally specify PR number"
 ---
@@ -38,6 +38,7 @@ If guidelines for the detected language don't exist, use your best effort to app
 
 Review the diff and relevant code, applying the loaded guidelines, and generate a report.
 The report consists of content for human review as well as a draft for the final review to be posted.
+Always be polite and not excessively verbose.
 
 Report Structure:
 
@@ -45,12 +46,17 @@ Report Structure:
   - Summary of changes: the purpose of the PR and the changes made
 - Review draft:
   - Decision: Approve, Request Changes, or Comment
-  - Body: Any high-level issues about architecture, design, code organisation etc. not tied to specific files or lines.
-  - Line-by-line comments on any issues pointing to specific files and lines. Each comment should:
-    - Begin with one of the standard review disposition indicators plus the issue type (e.g. "FYI perf:", "Minor readability:")
+  - Body
+    - Any high-level issues about architecture, design, code organisation etc. not tied to specific files or lines.
+    - Leave blank unless there are high-level issues; do not repeat the inline comments here
+  - Inline comments: a numbered list of line-by-line review comments; each item in the list should
+    - Reference a specific file and line(s).
+    - Include a block quote of the relevant code snippet (just for human review; do not post this part).
+    - Begin with one of the standard review disposition indicators plus the issue type, e.g. "FYI (perf): ...", "Minor (readability): ..." without emphasis in bold.
     - Describe the issue clearly and concisely, no more than one or two sentences.
-    - Suggest a specific improvement, possibly with a code example.
-    - If the code is unclear, a comment can ask a question to the author, too.
+      - If clearly a bug, state it directly.
+      - If it is uncertain (could be intentional), ask clarifying questions instead of assuming.
+    - When suggesting improvements, include a well-written code example if possible.
 
 Use the following table of standard disposition indicators for writing the comments.
 
@@ -58,7 +64,7 @@ Use the following table of standard disposition indicators for writing the comme
 | ---------------- | ----------- | --------- |
 | FYI              | Informing   | No        |
 | Typo, Minor, Nit | Discussing  | No        |
-| LGTM, Done       | Satisfied   | No        |
+| LGTM             | Satisfied   | No        |
 | Major, Bug       | Blocking    | Yes       |
 | ???              | Pondering   | No        |
 
@@ -70,7 +76,7 @@ Write the review draft in markdown format to the following location.
 .git/pr-reviews/pr-<number>-<timestamp>.md
 ```
 
-Present the report to the user for approval or iteration.
+Simply present this report file to the user for approval or iteration, without repeating the file content in your response.
 
 ### 5. Post Review to GitHub
 
@@ -107,3 +113,5 @@ Notes about the CLI:
 - `event`: One of `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`
 - `body`: Summary shown at the top of the review
 - `comments`: Array of inline comments; use `line` for single-line, add `start_line` for multi-line ranges
+
+After posting the review, simply provide the PR link back to the user for human review.

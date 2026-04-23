@@ -1,5 +1,5 @@
 ---
-name: address-pr-comments-with-lint-test
+name: address-gh-pr-comments-with-lint-test
 description: "Address unresolved PR review comments with a structured approval workflow. Pull comments, create a plan for approval, implement changes, run CI checks, amend the branch, and reply to reviewers."
 argument-hint: "Specify PR number"
 ---
@@ -13,7 +13,7 @@ Structured workflow: pull comments → create plan → get approval → implemen
 ### Phase 1: Gather and Plan
 
 1. Get PR details: use a github tool or the `gh pr view` CLI
-   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using appropriate settings (e.g. `--no-pager` or `GH_PAGER=cat`).
+   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 2. Fetch unresolved threads: filter for `isResolved: false` and where author hasn't replied yet
 3. Go through the threads and make a plan
    - For each thread: check file/line, context, reviewer comment, make assessment, propose action, draft reply
