@@ -1,5 +1,5 @@
 ---
-name: update-pr-description
+name: update-gh-pr-description
 description: "Update PR description based on the diff, using repo template while preserving automation blocks. Fills out motivation, summary, and template fields from actual code changes."
 argument-hint: "Specify PR number"
 ---
@@ -21,7 +21,7 @@ Each paragraph and each bullet should be a single line, regardless of line lengt
 Fetch these in parallel:
 
 - PR diff: get the full diff using a github tool or `gh pr diff` CLI.
-  Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using appropriate settings (e.g. `--no-pager` or `GH_PAGER=cat`).
+  Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 - PR template: look for template in repo in standard locations.
   If none found, use a sensible default (summary, motivation, changes, testing).
 - Existing description: fetch current PR body save it as a backup markdown file to:
@@ -56,7 +56,7 @@ Merge template with existing content:
 - Never modify automation blocks—preserve them exactly as found
 - Don't remove content the user may have intentionally added
 
-Make sure to include the following information in the updated description:
+In the updated description, make sure to include the following information roughly in the following order (unlese otherwise specified by the repo template):
 
 - Motivation: concise explanation of why this change is needed
 - Summary of changes: concise list of changes at a high-level

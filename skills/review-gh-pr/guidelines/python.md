@@ -99,7 +99,7 @@ All guidelines in this document are more modern and stricter than Google style a
 
 In order of preference:
 
-- Pydantic: For data models with validation (`frozen=True`, `extra='forbid'`, `validate_assignment=True`, `strict=True`); make full use of supported types and field/model validators
+- Pydantic: For data models with validation; make full use of supported types and field/model validators; use the strictest config possible for the use case (for example, `frozen=True`, `extra='forbid'`, `validate_default=True`, `validate_assignment=True` is a good starting point).
 - Dataclasses: For performance without validation (`frozen=True`, `kw_only=True`, `slots=True`)
 - NamedTuple: For immutable tuples with named fields (efficient for vectorised computation)
 
