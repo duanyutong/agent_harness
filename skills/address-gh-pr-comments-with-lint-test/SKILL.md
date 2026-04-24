@@ -16,14 +16,13 @@ Structured workflow: pull comments → create plan → get approval → implemen
    Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 2. Fetch unresolved threads: filter for `isResolved: false` and where author hasn't replied yet
 3. Go through the threads and make a plan
-   - For each thread: check file/line, context, reviewer comment, make assessment, propose action, draft reply
+   - For each thread: check file/line, context, reviewer comment, make assessment, discuss the issue and rationale, propose action, and draft reply
      - Reply should be concise, clear, and natural-sounding.
-4. If the solution is clear with high-confidence, proceed to next steps.
-   Otherwise, check with human for approval or iteration.
+4. Present the plan file to the user for review and approval before proceeding.
 
 ### Phase 2: Implement
 
-- Apply changes that address each approved item
+- Once plan is approved, apply changes that address each approved item
 - Do not make excessive change beyond the plan
 - Update applicable tests and docs if they are affected
 
@@ -46,7 +45,7 @@ Discover and run the repo's lint/test setup:
 
 ### Phase 5: Reply and Resolve
 
-1. Post approved replies to each thread explaining how it was addressed
+1. Post the approved replies from the plan to each thread explaining how it was addressed
    - Use a github tool or the `gh api` CLI to reply to specific threads, e.g.
 
    ```sh
