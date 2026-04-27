@@ -40,9 +40,9 @@ If guidelines for the detected language don't exist, use your best effort to app
 
 ### 3. Conduct Review
 
-Review the diff and relevant code, applying the loaded guidelines, and generate a report.
-The report consists of content for human review as well as a draft for the final review to be posted.
-Always be polite and not excessively verbose.
+Review the diff and relevant code, applying the loaded guidelines, and generate a report in markdown format.
+The report consists of two parts: notes for the human reviewer and the draft to be posted on GitHub.
+Keep comments polite, appreciative, collegial, and concise—avoid excessive verbosity.
 
 #### Report Structure
 
@@ -51,16 +51,16 @@ Always be polite and not excessively verbose.
 - Review draft:
   - Decision: Approve, Request Changes, or Comment
   - Body
-    - Any high-level issues about architecture, design, code organisation etc. not tied to specific files or lines.
-    - Leave blank unless there are high-level issues; do not repeat the inline comments here
-  - Inline comments
+    - If there are high-level issues regarding the architecture, design, or code organization, not tied to specific files or lines, describe them here in a concise manner and provide constructive suggestions for improvement.
+    - If no high-level issues exist, include a **one-sentence** summary of strengths and/or areas for improvement, without duplicating inline comments.
+  - A list of inline comments
 
 #### Inline Comments Section
 
 This section is a numbered list of line-by-line review comments.
 Each item in the list should:
 
-- Cite the file path, line number(s), and diff side—LEFT for deletions, RIGHT for additions (required).
+- Cite the file path, line number(s), and diff side—LEFT for deletions, RIGHT for additions (required and protected--always preserve this part when modifying the comment text).
 - Include a block quote of the relevant code snippet (just for human review; do not post this part).
 - Begin with one of the standard review disposition indicators plus the issue type, e.g. "FYI (perf): ...", "Minor (readability): ..." without emphasis in bold.
 - Describe the issue clearly and concisely, no more than one or two sentences.
@@ -82,15 +82,15 @@ Use the following table of standard disposition indicators in the beginning of e
 Only use "LGTM" when replying to an existing, open thread that has been fully addressed.
 Do not add new inline comments that are simply LGTM.
 
-### 4. Write the Report
+### 4. Save the Report
 
-Write the review draft in markdown format to the following location.
+- Prefer writing the file to a pre-approved session memory location if available.
+- Otherwise, write to `.git/pr-reviews/pr-<number>-<timestamp>.md`.
+  Create directory if it does not exist.
+- Use ISO timestamp if applicable.
 
-```text
-.git/pr-reviews/pr-<number>-<timestamp>.md
-```
-
-Simply present this report file to the user for approval or iteration, without repeating the file content in your response.
+Present this report file to the user for approval or iteration.
+Do not repeat the file content in your response.
 
 ### 5. Publish Review to GitHub
 
