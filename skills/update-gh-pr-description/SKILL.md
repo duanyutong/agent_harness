@@ -24,20 +24,18 @@ Fetch these in parallel:
   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 - PR template: look for template in repo in standard locations.
   If none found, use a sensible default (summary, motivation, changes, testing).
-- Existing description: fetch current PR body save it as a backup markdown file to:
+- Existing description: fetch current PR body save it as a backup markdown file.
+  - Prefer writing to a pre-approved session memory location if available.
+  - Otherwise, write to `.git/pr-reviews/pr-<number>-<timestamp>.md`.
+    Use ISO timestamp.
+    Create directory if it does not exist.
 
-```text
-.git/pr-descriptions/pr-<number>-backup-<timestamp>.md
-```
-
-Use ISO timestamp (e.g., `20260421T143022`). Create directory if needed.
-
-Then identify in the existing description:
+Next, identify in the existing description:
 
 - User content area (top section, before automation blocks) - may be empty or partially filled
 - Automation blocks (stack managers, summary bots, CI status, etc.)
-
-Automation blocks are typically delimited by `---` or HTML comments, contain bot signatures or tool markers, and sit at the bottom. If unsure whether a section is automation or user content, err on the side of preserving it.
+  - Automation blocks are typically delimited by `---` or HTML comments, contain bot signatures or tool markers, and sit at the bottom.
+  - If unsure whether a section is automation or user content, err on the side of preserving it.
 
 ### 2. Analyze Diff
 
@@ -48,28 +46,22 @@ From the diff, extract:
 - Key modifications (new functions, changed behavior, config updates)
 - Any obvious motivation (infer from code context)
 
-### 3. Apply Template and Fill Content
+### 3. Prepare Description Update
 
-Merge template with existing content:
+PR Description Template:
 
-- Insert/update template sections in user content area only
-- Never modify automation blocks—preserve them exactly as found
-- Don't remove content the user may have intentionally added
+- If a template is defined, follow it verbatim, filling out the sections with the extracted information from the diff.
+- If no template, use the following structure.
+- In either case, the following information should be included in the updated description, in this order (unless otherwise specified by the repo template):
+  - Motivation: concise explanation of why this change is needed
+  - Summary of changes: concise list of changes at a high-level
+  - Testing: how it was tested, if evident
+  - Ticket reference: link if known, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
 
-In the updated description, make sure to include the following information roughly in the following order (unlese otherwise specified by the repo template):
+Automation Blocks:
 
-- Motivation: concise explanation of why this change is needed
-- Summary of changes: concise list of changes at a high-level
-- Testing: how it was tested, if evident
-- Ticket reference: link if known, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
-
-Result structure:
-
-```markdown
-[PR template filled out from diff]
-
-[automation blocks preserved as-is]
-```
+- Never modify any existing automation blocks—preserve them exactly as found in addition to the template (e.g. auto-generated PR summary, list of stacked PRs, etc.).
+- Don't remove content the user may have intentionally added.
 
 ### 4. Update the PR
 
