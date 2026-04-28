@@ -6,7 +6,7 @@ argument-hint: "Specify PR number"
 
 # Address PR Review Comments with Lint/Test
 
-Structured workflow: pull comments → create plan → get approval → implement → validate → amend branch → reply to reviewers.
+Structured workflow: pull comments → create plan → get approval → implement → validate → update branch → reply to reviewers.
 
 ## Procedure
 
@@ -16,9 +16,18 @@ Structured workflow: pull comments → create plan → get approval → implemen
    Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 2. Fetch unresolved threads: filter for `isResolved: false` and where author hasn't replied yet
 3. Go through the threads and make a plan
-   - For each thread: check file/line, context, reviewer comment, make assessment, discuss the issue and rationale, propose action, and draft reply
-     - Reply should be concise, clear, and natural-sounding.
 4. Present the plan file to the user for review and approval before proceeding.
+
+Plan structure:
+
+- For each thread: check file/line, context, reviewer comment, make assessment, discuss the issue and rationale, propose action, and draft reply
+  - Reply should be concise, clear, and natural-sounding.
+
+Plan location:
+
+- Prefer writing the file to a pre-approved session memory location if available.
+- Otherwise, write to `.git/pr-revisions/pr-<number>-<timestamp>.md`.
+  Create directory if it does not exist.
 
 ### Phase 2: Implement
 
