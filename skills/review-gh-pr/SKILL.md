@@ -28,13 +28,13 @@ Perform comprehensive code review with language-agnostic best practices and lang
 First check if there are guidelines available in the repo.
 Prefer these repo-specific guidelines if there are conflicts with general best practices.
 
-Use the read_file tool to load guideline files from the `./guidelines/` directory next to this skill file.
-Always load the general, language-agnostic guidelines first from [./guidelines/general.md](./guidelines/general.md).
+Use a read_file tool to load guideline files from the `./standards/` directory next to this skill file:
 
-In addition, for each detected language, attempt to load the corresponding language-specific guideline file from `./guidelines/{language}.md`. Available guidelines include:
-
-- Python: [./guidelines/python.md](./guidelines/python.md)
-- More to be added
+- Always load the general, language-agnostic guidelines first from [./standards/principles.md](./standards/principles.md).
+- Always load the code review guidelines from [./standards/code-review.md](./standards/code-review.md).
+- For each detected language, attempt to load the corresponding language-specific guideline file from `./standards/{language}.md`. Available guidelines include:
+  - Python: [./standards/python.md](./standards/python.md)
+  - More to be added
 
 If guidelines for the detected language don't exist, use your best effort to apply known best modern practices and standards for this language.
 
