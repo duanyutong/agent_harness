@@ -1,15 +1,6 @@
-# General Guidelines
+# General Coding Principles & Best Practices
 
-This document covers language-agnostic software engineering principles and best practices.
-
-Code review should cover correctness, readability, maintainability, and more—from high-level design to low-level implementation details:
-
-- Is it well-designed and well-structured? (e.g., modular, layered)
-- Is it well-written and easy to read, with adequate documentation?
-- Is it maintainable and extensible?
-- Does it behave correctly?
-- Does it follow standards and best practices?
-- Does it have sufficient test coverage?
+This document outlines language-agnostic software engineering principles and best practices.
 
 ## Core Principles
 
@@ -22,7 +13,7 @@ Code review should cover correctness, readability, maintainability, and more—f
 
 ## Safety
 
-### The Power of 10: Rules for Developing Safety-Critical Code (NASA/JPL)
+The Power of 10: Rules for Developing Safety-Critical Code (NASA/JPL)
 
 1. Restrict to simple control flow—avoid `goto`, `setjmp`, or recursion
 2. All loops should have a fixed upper bound
@@ -39,38 +30,45 @@ Reference: Gerard J. Holzmann, _IEEE Computer_ (2006)
 
 ## Security
 
-- Validate all input at trust boundaries
-- Sanitise raw input data before use in SQL, HTML, etc.
-- Never commit secrets to version control
+Secure code protects data and systems from unauthorised access, misuse, and exploitation.
+
+- **Validation**: Define explicit trust boundaries and validate all input at these boundaries
+- **Sanitization**: Sanitise raw input data before use in SQL, HTML, etc.
+- **Secrets Management**: Never commit secrets to version control; use environment variables or vaults instead
 
 ## Design Patterns
 
-- Use standard design patterns for maintainability, scalability, and readability
+Design patterns are proven solutions to recurring problems.
+They improve code readability, maintainability, and scalability.
+
 - Patterns are solutions to recurring problems—don't force-fit them
 - Prefer the simplest solution; introduce patterns when complexity demands
 - Name patterns in code (e.g., `UserFactory`, `PaymentStrategy`) for clarity
 
 Standard design patterns:
 
-- Creational: factory, abstract factory, builder, prototype, singleton
-- Structural: adapter, bridge, composite, decorator, facade, flyweight, proxy
-- Behavioural: chain of responsibility, command, iterator, mediator, memento, observer, state, strategy, template method, visitor
+- **Creational**: factory, abstract factory, builder, prototype, singleton
+- **Structural**: adapter, bridge, composite, decorator, facade, flyweight, proxy
+- **Behavioural**: chain of responsibility, command, iterator, mediator, memento, observer, state, strategy, template method, visitor
 
 Reference: Gamma, Helm, Johnson, Vlissides, _Design Patterns: Elements of Reusable Object-Oriented Software_ (1994)
 
-## Test Principles
+## Testing
+
+Tests verify correctness, document behaviour, and enable safe refactoring.
 
 - Tests should be fast, isolated, repeatable, self-validating, and timely (F.I.R.S.T.)
 - Test behaviour, not implementation
 - Tests are documentation—make them readable
 - The Arrange-Act-Assert structure is recommended for clarity
 
-## Additional Principles
+## Additional Guidelines
 
 - Composition over Inheritance
   - Inheritance creates tight coupling; composition allows flexibility
   - "Has-a" relationships are often more appropriate than "is-a"
   - Use interfaces/protocols for polymorphism without inheritance hierarchies
+  - Prefer dependency injection to hard-coded dependencies for better testability and modularity
 - Principle of Least Astonishment
   - Code should behave as users and developers expect
   - Function names should accurately describe what they do
@@ -86,11 +84,15 @@ Reference: Gamma, Helm, Johnson, Vlissides, _Design Patterns: Elements of Reusab
   - Operations that can be safely retried should produce the same result
   - Critical for distributed systems, network requests, and database operations
   - Design APIs and functions to be idempotent where possible
+  - Use unique identifiers to detect and prevent duplicates
 - Naming
   - Names should be descriptive and reveal intent
   - Use consistent naming conventions within a codebase
   - Boolean variables and functions should read as yes/no questions (e.g., `is_valid`, `has_permission`)
   - Function names should be verb phrases (e.g., `calculate_total`, `send_email`)
+  - Class names should be noun phrases (e.g., `User`, `PaymentProcessor`)
 - Comments
   - Code should be self-documenting; comments explain _why_, not _what_
   - Keep comments accurate—wrong comments are worse than none
+
+**Reference**: Robert C. Martin, _Clean Code: A Handbook of Agile Software Craftsmanship_ (2008)

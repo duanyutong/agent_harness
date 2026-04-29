@@ -1,12 +1,11 @@
-# Python Guideline
+# Python Coding Standards
 
-This document lists Python standards and best practices that in general should be followed wherever possible.
-
+This document establishes comprehensive Python coding standards, emphasising modern best practices and maintainability.
 Some rules can and should be enforced by linters, while others require more discipline.
 
-## PEPs
+## PEPs Reference
 
-Here is a select list of important PEPs that should be followed.
+Essential PEPs to follow:
 
 - PEP 8: Style Guide for Python Code
 - PEP 20: The Zen of Python
@@ -33,106 +32,107 @@ Here is a select list of important PEPs that should be followed.
 - PEP 742: TypeIs for type narrowing (replaces TypeGuard) (Python 3.13+)
 - PEP 750: Template Strings (t-strings) (Python 3.14+)
 
-## Style
+## Naming
 
-Google style is a set of basic conventions that are widely used and accepted, covering naming, imports, etc.
-It is a solid foundation that serves as a good default, unless more modern practices are available.
-All guidelines in this document are more modern and stricter than Google style and preferred.
+- **Functions & variables**: `snake_case`
+- **Classes**: `CamelCase`
+- **Constants**: `ALL_CAPS` (module-level)
+- **Private identifiers**: Leading underscore (`_variable`, `_function()`)
+- **Discarded values**: Use `_` to explicitly ignore return values
+- **Avoid single-letter variable names** in most contexts except for:
+  - **Loop indices**: `for i in range(n):`, `for i, item in enumerate(items):`
+  - **Scientific/mathematical code**: `x`, `y`, `z` for coordinates; `t` for time; domain-standard conventions
+  - **Discarded values**: `_` for values you don't need (`_ = await call()`)
+  - **Type variables**: `T`, `K`, `V` per PEP 484
 
-- Naming: snake_case for functions/variables, CamelCase for classes, ALL_CAPS for constants, leading underscore for private variables/functions
-- Imports
-  - Absolute imports only, no relative imports
-  - Import packages and modules only, not individual classes or functions (except from `typing` and `collections.abc`)
-  - Use standard abbreviations (e.g., `import numpy as np`)
-- Assertions: Do not use `assert` for runtime validation—assertions may be optimised out in production build
-- Mutable globals
-  - Avoid as much as possible
-  - If unavoidable, make variable private with leading `_` and only expose public functions
-- Function arguments
-  - Never use mutable objects as default values (lists, dicts, etc.)
+## Imports
 
-## Best Practices
+- Absolute imports only, no relative imports
+- Import packages and modules only, not individual classes or functions (except from `typing` and `collections.abc`)
+- Use standard abbreviations (e.g., `import numpy as np`)
 
-### Build and Package Management
+## Other General Best Practices
 
-- Use `pyproject.toml` as the single source of truth for build system and dependencies
-- Use `uv` for fast, modern package management and development workflow
-- Use lock file for version pinning, and `>=` in `pyproject.toml` for specifying the actual requirement
-- Separate dev, build, and prod dependencies into different groups
-- Discard empty `__init__.py`, unless it is needed to make a combined module or to control exports
+- **Type Annotations**:
+  - Always use type hints for function arguments and return types.
+  - For variables that are not immediately obvious, add type annotations for clarity.
+- **Mutable globals**: Avoid. If unavoidable, make private with leading `_` and expose only public functions
+- **Function defaults**: Never use mutable objects as default values (lists, dicts); use `None` and initialize in function body
+- **Readability**:
+  - Declare variable types before `if/else` branches
+  - Use context managers for resource management (`with` statements)
+  - Use `try-except-else-finally` for error handling
+  - Use `textwrap.dedent()` for long multi-line strings (or prefer external text files)
 
-### Linting & Static Analysis
+## Build and Package Management
 
-- Use `ruff-format` for formatting, `ruff-check` for linting, `pyright` for static analysis
-- For maximum static analysis coverage, fully utilise modern language features such as
-  - `Self`, `Final`, `@final`, `@override`, etc.
-  - `match`/`case` for complex conditionals
-- Use `cast` if it produces the correct behaviour and is the only way to avoid suppressions
+- **`pyproject.toml`**: Single source of truth for build system and dependencies
+- **Package manager**: Use `uv` for fast, modern package management
+- **Lock files**: Pin versions with lock files; use `>=` in `pyproject.toml` for actual requirements
+- **Dependencies**: Separate dev, build, and prod dependencies into groups
+- **`__init__.py`**: Discard unless needed for combined modules or controlling exports
 
-### Readability
+## Linting and Static Analysis
 
-- Prefer declaring variable types before `if/else` branches similar to ternary
-- Use context managers for resource management (files, connections, locks)
-- Use `try-except-else(-finally)` for error handling
-- Use `textwrap.dedent()` for long multi-line strings, but consider external text files.
+- **Formatting**: `ruff format` for consistent style
+- **Linting**: `ruff check` for code quality
+- **Static analysis**: `pyright` for type checking and safety
+- **Modern features**: Fully utilize language features (`Self`, `Final`, `@final`, `@override`, `match`/`case`)
+- **Type narrowing**: Use `cast` only when necessary and it produces correct behavior
 
-### Enums
+## Enums
 
-- Singleton comparison (`None`, `True`, `False`, enums) should use identity (`is`) rather than equality (`==`)
-- Prefer plain `enum.Enum` for strongest typing and differentiation between name and value types; use `IntEnum` and `StrEnum` sparingly and beware of unintended comparisons and type issues
-- Prefer integer-valued enums when used in database storage for optimal performance, interoperability, and predictable cardinality
+- Singleton comparison (`None`, `True`, `False`, enums) uses identity (`is`), not equality (`==`)
+- Prefer plain `Enum` for strongest typing and clear name/value differentiation
+- Use `IntEnum` and `StrEnum` sparingly; beware of unintended comparisons and type issues
+- Prefer integer-valued enums for database storage (optimal performance, interoperability)
 - Use `auto()` for automatic value generation (with `_generate_next_value_` override if needed)
 
-### File Paths
+## File Paths
 
-- Use `pathlib` for all local filesystem operations
-- Use `cloudpathlib` for cloud path operations
+- **Local filesystems**: Use `pathlib.Path` for all operations
+- **Cloud storage**: Use `cloudpathlib` for cloud path operations
 
-### Signature
+## Function Signatures
 
-- Use `/`, `*` features to improve readability and safety of function calls
-- Use `@property`, `@functools.cached_property`, `@pydantic.computed_field` appropriately
-- Choose the most appropriate type for any variable and parameter (e.g. `list` vs `frozenset`)
-  - Input data containers should generally be covariant (e.g. `Sequence` vs `list`)
+- Use `/` and `*` to enforce positional/keyword-only arguments for clarity and safety
+- Use `@property` and `@functools.cached_property` appropriately
+- Choose appropriate container types for parameters (e.g., `Sequence` vs `list` for inputs)
 
-### Data Models
+## Data Models
 
 In order of preference:
 
-- Pydantic: For data models with validation; make full use of supported types and field/model validators; use the strictest config possible for the use case (for example, `frozen=True`, `extra='forbid'`, `validate_default=True`, `validate_assignment=True` is a good starting point).
-- Dataclasses: For performance without validation (`frozen=True`, `kw_only=True`, `slots=True`)
-- NamedTuple: For immutable tuples with named fields (efficient for vectorised computation)
+1. **Pydantic**: For data models with validation; leverage field/model validators; use strictest config (`frozen=True`, `extra='forbid'`, `validate_default=True`, `validate_assignment=True`)
+2. **Dataclasses**: For performance-sensitive code without validation (`frozen=True`, `kw_only=True`, `slots=True`)
+3. **NamedTuple**: For immutable named tuples (efficient for vectorized computation)
 
-### CLI Scripts
+## Command-Line Interfaces
 
-- Prefer `cyclopts` over `argparse` or `click` for modern type-safe CLI
-  - Leverage type hints to generate argument parsers automatically
-- Use `#!/usr/bin/env -S uv run --script` in shebang as documented in `uv`
-- Use proper exit codes (0 success, non-zero error)
+- Prefer **`cyclopts`** over `argparse` or `click` for type-safe CLI (auto-generates from type hints)
+- Use `#!/usr/bin/env -S uv run --script` in shebang
+- Use proper exit codes (0 for success, non-zero for errors)
 
-### Database
+## Database
 
-- Use `SQLAlchemy` 2.0 API (either ORM or Core)
-- Use `Alembic` for automatic migrations
-- Avoid raw SQL queries for safety and maintainability
+- Use **SQLAlchemy 2.0 API** (ORM or Core) exclusively
+- Use **Alembic** for migrations; avoid hand-written SQL
+- Never use raw SQL queries for safety and maintainability
 
-### OpenAPI and HTTP Clients
+## HTTP and OpenAPI
 
-- Always generate statically typed clients from OpenAPI specs for making HTTP calls
-- Use async `httpx` rather than `requests` if hand-writing clients
-- All request/response types should be pydantic models
+- **Always generate statically typed clients from OpenAPI specs** for HTTP calls
+- Use async **`httpx`** rather than `requests` for hand-written clients
+- All request/response types must be Pydantic models
 
-### Pytest
+## Testing (Pytest)
 
-- Never mutate shared libraries or modules in a way that can contaminate other tests
-- Conftest: Use `conftest.py` for clearly scoped fixtures at each directory level
-- Sandboxing: Define a fixture to completely block network access for unit tests
-- Custom markers: Use a fixed set of markers to manage different types of tests (unit, integration, manual, network, etc.), similar to Bazel tags.
-- Grouping: Use classes to group related test functions for readability; use `@staticmethod` when appropriate
-- Parametrisation: Use `@pytest.mark.parametrize` with `ids` for testing multiple input/output cases
-- Patching: prefer `mock.path.object` over `mock.patch` for already-imported modules to avoid hardcoded string paths that are brittle and not type-checked.
-
-Other tips:
-
-- Asyncio: `asyncio_mode = "auto"` once in project config and skip the `@pytest.mark.asyncio` decorator in functions
-- Keep class and function names descriptive and yet concise; use `pytest_collection_modifyitems` to limit node display length in test reports if needed
+- **Isolation**: Never mutate shared libraries or modules that could contaminate other tests
+- **Conftest**: Use `conftest.py` at each directory level for scoped fixtures
+- **Sandboxing**: Define fixtures to block network access for unit tests
+- **Markers**: Define a fixed set of custom markers (unit, integration, manual, network) similar to Bazel tags
+- **Grouping**: Use test classes to organize related tests; use `@staticmethod` when appropriate
+- **Parametrization**: Use `@pytest.mark.parametrize` with `ids` for multiple input/output cases
+- **Patching**: Prefer `mock.patch.object()` over `mock.patch()` for better type checking and maintainability
+- **Asyncio**: Configure `asyncio_mode = "auto"` project-wide; skip `@pytest.mark.asyncio` on functions
+- **Naming**: Keep test names descriptive and concise
