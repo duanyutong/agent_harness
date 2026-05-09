@@ -1,7 +1,7 @@
 ---
 name: review-gh-pr
 description: "Perform comprehensive code review and post review to the GitHub PR"
-argument-hint: "Optionally specify PR number"
+argument-hint: "Optionally specify PR number or link"
 ---
 
 # Review PR
@@ -40,74 +40,50 @@ If guidelines for the detected language don't exist, use your best effort to app
 
 ### 3. Conduct Review
 
-Review the diff and relevant code, applying the loaded guidelines, and generate a report in markdown format.
-The report consists of two parts: notes for the human reviewer and the draft to be posted on GitHub.
+Review everything, apply the guidelines, and generate a report in markdown format.
 Keep comments polite, appreciative, collegial, and concise—avoid excessive verbosity.
 
-#### Report Structure
-
-- For human reviewer:
-  - Summary of changes: the purpose of the PR and the changes made
-- Review draft:
-  - Decision: Approve, Request Changes, or Comment
-  - Body
-  - A list of inline comments
-
-#### Review Body
-
-If there are high-level issues regarding the architecture, design, or code organization, not tied to specific files or lines, describe them here in a concise manner and provide constructive suggestions for improvement.
-
-If no high-level issues exist, include a **one-sentence** summary.
-Do not elaborate, add multiple points, or repeat the inline comments. Examples:
-
-- "Clean implementation with clear separation of concerns; a few minor comments below."
-- "LGTM; just a couple of nits."
-- "Thanks for putting this together."
-
-#### Inline Comments Section
-
-This section is a numbered list of line-by-line review comments.
-Each item in the list should:
-
-- Cite the file path, line number(s), and diff side—LEFT for deletions, RIGHT for additions (required and protected--always preserve this part when modifying the comment text).
-- Include a block quote of the relevant code snippet (just for human review; do not post this part).
-- Begin with one of the standard review disposition indicators plus the issue type, e.g. "FYI (perf): ...", "Minor (readability): ..." without emphasis in bold.
-- Describe the issue clearly and concisely, no more than one or two sentences.
-  - If clearly a bug, state it directly.
-  - If it is uncertain (could be intentional), ask clarifying questions instead of assuming.
-- Include a well-written code example when suggesting improvements if possible, in a new paragraph.
-- Consider the scope and size of the PR and, if addressing the issue can be deferred to a follow-up, mention that at the end of the comment (only mention this if the change would be large or significantly out of scope for the current PR).
-
-Use the following table of standard disposition indicators in the beginning of each comment to indicate the severity and nature of the issue:
-
-| Indicator        | Disposition | Blocking? |
-| ---------------- | ----------- | --------- |
-| FYI              | Informing   | No        |
-| Typo, Minor, Nit | Discussing  | No        |
-| LGTM             | Satisfied   | No        |
-| Major, Bug       | Blocking    | Yes       |
-| ???              | Pondering   | No        |
-
-Only use "LGTM" when replying to an existing, open thread that has been fully addressed.
-Do not add new inline comments that are simply LGTM.
-
-### 4. Save the Report
-
-- Prefer writing the file to a pre-approved session memory location if available.
-- Otherwise, write to `.git/pr-reviews/pr-<number>-<timestamp>.md`.
-  Create directory if it does not exist.
-- Use ISO timestamp if applicable.
+For guidance on writing review body and inline comments, see [./standards/code-review.md](./standards/code-review.md).
 
 Present this report file to the user for approval or iteration.
 Do not repeat the file content in your response.
 
-### 5. Publish Review to GitHub
+#### Report Structure
 
-Once approved, post the review via `export GH_PAGER=cat && gh api`, using file paths and line numbers as written in the draft—do not rederive them.
+- For human reviewer:
+  - Summary of changes: PR title, number (with link), purpose, and changes made
+- Open threads: each item in the numbered list should include:
+  - Thread ID, link, summary
+  - Draft of reply if applicable
+    - Participate in every open thread where we haven't weighed in or need to respond again
+    - Keep it simple when appropriate—a brief "+1" with one sentence suffices if there's nothing more to add
+    - Provide a more detailed response when it adds value to the discussion
+- Review draft:
+  - Decision: Approve, Request Changes, or Comment
+  - Body
+  - A numbered list of inline comments
 
-Make each API call exactly once to avoid duplicate publications, unless the call failed due to a network or server error.
+#### Inline Comments Format
 
-After posting, provide the PR link back to the user for verification.
+In addition to the guidance in code-review.md, each inline comment in the report must:
+
+- Cite the file path and line numbers (this will be used for posting the review, so please ensure accuracy)
+- Cite the diff side—LEFT for deletions, RIGHT for additions (required and protected—always preserve this part when modifying the comment text)
+- Include a block quote of the relevant code snippet (for human review only; do not post this part)
+
+#### Report Location
+
+- Write to `~/.agents/pr-reviews/repo_owner/repo_name/pr-<number>-<timestamp>.md`.
+  Create directory if it does not exist.
+- Use ISO timestamp if applicable.
+- When iterating, update this report file without creating a new one.
+
+### 4. Publish Review to GitHub
+
+Once approved, take the report document and post new comments via CLI using `export GH_PAGER=cat && gh api`.
+Make sure to avoid duplicate publications; only retry when the call has failed due to a network or server error.
+
+Replies to existing threads and new reviews have to be posted separately using the appropriate API endpoints.
 
 #### Reply to an Existing Thread
 
@@ -122,7 +98,7 @@ Parameters:
 
 - `comment_id`: ID of the top-level comment in the thread to reply to
 
-#### Posting a new Review
+#### Posting a new Review (including body and inline comments)
 
 ```sh
 gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews \
@@ -135,8 +111,8 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews \
     {
       "path": "src/utils.py",
       "line": 42,
-      "body": "Single-line comment"
-      "side": "LEFT",
+      "body": "Single-line comment",
+      "side": "LEFT"
     },
     {
       "path": "src/utils.py",
@@ -159,3 +135,10 @@ Parameters:
   - `line`: Line number (end line for multi-line)
   - `start_line`: Start line for multi-line comments
   - `side`: Optional; `LEFT` (deletions) or `RIGHT` (additions, default)
+
+### 5. Finalise
+
+Clean up any temporary worktree or branch you have created during the review.
+
+Provide the PR link back to the user for verification.
+Do not repeat the review content that has been posted in your response.

@@ -44,13 +44,13 @@ Discover and run the repo's lint/test setup:
 - Loop: fix failures → re-run until passing
 - Review final diff before committing
 
-### Phase 4: Amend Branch
+### Phase 4: Update Branch
 
 1. Stage changes: `git add ...`
-2. Amend:
+2. Update:
    - Single commit: amend, e.g. `git amend` (branchless) or `gt m` (graphite)
    - Multi-commit: `git commit --fixup=<sha>` then `git rebase -i --autosquash <base>`
-   - Stacked PR: if amend did not work fully, run the restack command to rebase the stack and fix any conflicts
+   - Stacked PR: if amend did not work fully, run the restack command to rebase the stack and fix any conflicts in the upstack.
 
 ### Phase 5: Reply and Resolve
 
@@ -63,12 +63,17 @@ Discover and run the repo's lint/test setup:
       -F in_reply_to=$COMMENT_ID
    ```
 
-2. Update PR description if scope changed: `gh pr edit <PR> --body "<updated>"`
+2. Update PR description if scope changed, using CLI: `gh pr edit <PR> --body "<updated>"`
 
 Never resolve reviewer threads.
 Leave that to the reviewer who posted the comment.
 
 ### Phase 6: Cleanup
 
-- Delete the ephemeral `plan.md`
-- Provide user with a summary: code and PR description changes made, threads addressed, any skipped items with reasons, local changes ready for push.
+Provide user with a summary:
+
+- Code and PR description changes made
+- Threads addressed
+- Any skipped items with reasons
+- Any local changes ready for push
+- PR link for human review if comments/changes were posted

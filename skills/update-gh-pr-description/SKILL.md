@@ -56,7 +56,7 @@ PR Description Template:
   - Motivation: concise explanation of why this change is needed
   - Summary of changes: concise list of changes at a high-level
   - Testing: how it was tested, if evident
-  - Ticket reference: link if known, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
+  - Ticket reference: include ticket link if known from the existing description or user input, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
 
 Automation Blocks:
 
