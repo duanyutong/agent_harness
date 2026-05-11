@@ -1,0 +1,6 @@
+Benchmark run: Mon May 11 09:47:46 EDT 2026
+Hardware: Apple M3 Pro
+Trials: 5
+
+Engine         decode tok/s     TTFT (s)        Tools     RSS MB
+Rapid-MLX              51.2        0.087        10/10        326

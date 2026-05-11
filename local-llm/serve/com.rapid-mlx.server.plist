@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Rapid-MLX launchd agent — keeps Qwen3-Coder running in the background.
+
+  Install:
+    cp com.rapid-mlx.server.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.rapid-mlx.server.plist
+
+  Unload:
+    launchctl unload ~/Library/LaunchAgents/com.rapid-mlx.server.plist
+
+  Logs:
+    tail -f /tmp/rapid-mlx.log /tmp/rapid-mlx.err
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.rapid-mlx.server</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/rapid-mlx</string>
+    <string>serve</string>
+    <string>qwen3-coder-30b</string>
+    <string>--prefill-step-size</string><string>8192</string>
+    <string>--port</string><string>8000</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/rapid-mlx.log</string>
+  <key>StandardErrorPath</key><string>/tmp/rapid-mlx.err</string>
+</dict>
+</plist>

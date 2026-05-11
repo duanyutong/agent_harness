@@ -79,7 +79,7 @@ In addition to the guidance in code-review.md, each inline comment in the report
 
 ### 4. Publish Review to GitHub
 
-Once approved, take the report document and post new comments via CLI using `export GH_PAGER=cat && gh api`.
+Once approved, take the latest state of the report document (possibly modified by user) and post new comments via CLI using `export GH_PAGER=cat && gh api`.
 Make sure to avoid duplicate publications; only retry when the call has failed due to a network or server error.
 
 Replies to existing threads and new reviews have to be posted separately using the appropriate API endpoints.

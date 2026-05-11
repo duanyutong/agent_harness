@@ -49,7 +49,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
-rev = "v0.22.0"
+rev = "v0.22.1"
 hooks = [
   { id = "markdownlint-cli2", name = "markdown lint" },
 ]
@@ -65,7 +65,7 @@ hooks = [
 # Python formatting and linting (for future Python scripts in skills)
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.15.11"
+rev = "v0.15.12"
 hooks = [
   { id = "ruff-format", types_or = ["python", "pyi"] },
   { id = "ruff-check", types_or = ["python", "pyi"], args = ["--fix"] },
@@ -74,7 +74,7 @@ hooks = [
 # Python type checking (for future Python scripts in skills)
 [[repos]]
 repo = "https://github.com/RobertCraigie/pyright-python"
-rev = "v1.1.408"
+rev = "v1.1.409"
 hooks = [
   { id = "pyright" },
 ]
