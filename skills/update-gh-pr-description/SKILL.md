@@ -20,51 +20,44 @@ Each paragraph and each bullet should be a single line, regardless of line lengt
 
 Fetch these in parallel:
 
-- PR diff: get the full diff using a github tool or `gh pr diff` CLI.
+- PR diff: get the full diff using a GitHub tool or `gh pr diff` CLI.
   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 - PR template: look for template in repo in standard locations.
-  If none found, use a sensible default (summary, motivation, changes, testing).
-- Existing description: fetch current PR body save it as a backup markdown file.
-  - Prefer writing to a pre-approved session memory location if available.
-  - Otherwise, write to `.git/pr-reviews/pr-<number>-<timestamp>.md`.
-    Use ISO timestamp.
-    Create directory if it does not exist.
+- Existing description: fetch and back up the existing PR description.
+- Write to `~/.local/share/agent-skill-pr-descriptions/repo_owner/repo_name/pr-<number>-<timestamp>-backup.md`.
+  Use ISO timestamp.
 
 Next, identify in the existing description:
 
-- User content area (top section, before automation blocks) - may be empty or partially filled
+- User content area (as opposed to automation blocks) - may be empty or partially filled (e.g. from commit messages)
+  This is the part we want to update.
 - Automation blocks (stack managers, summary bots, CI status, etc.)
   - Automation blocks are typically delimited by `---` or HTML comments, contain bot signatures or tool markers, and sit at the bottom.
-  - If unsure whether a section is automation or user content, err on the side of preserving it.
+  - These sections are to be preserved verbatim and left unchanged.
+
+Don't remove any content the user may have intentionally added.
 
 ### 2. Analyze Diff
 
-From the diff, extract:
+From the diff, determine:
 
+- Motivation of the change
 - Files changed and their purpose
-- Nature of changes (feature, fix, refactor, docs, etc.)
-- Key modifications (new functions, changed behavior, config updates)
-- Any obvious motivation (infer from code context)
+- High-level summary of important changes in behaviour or new features/fixes
 
 ### 3. Prepare Description Update
 
-PR Description Template:
+If a template is defined, follow it verbatim, filling out the sections with the extracted information.
 
-- If a template is defined, follow it verbatim, filling out the sections with the extracted information from the diff.
-- If no template, use the following structure.
-- In either case, the following information should be included in the updated description, in this order (unless otherwise specified by the repo template):
-  - Motivation: concise explanation of why this change is needed
-  - Summary of changes: concise list of changes at a high-level
-  - Testing: how it was tested, if evident
-  - Ticket reference: include ticket link if known from the existing description or user input, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
+The following information should be included in the updated description, in this order (unless otherwise specified by the repo template):
 
-Automation Blocks:
+- Motivation
+- Summary of changes: concise, high-level, no more than 150 words
+- Testing: how it should be tested, each test item as a markdown checkbox
+- Ticket reference: include ticket link if known from the existing description or user input, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
 
-- Never modify any existing automation blocks—preserve them exactly as found in addition to the template (e.g. auto-generated PR summary, list of stacked PRs, etc.).
-- Don't remove content the user may have intentionally added.
+Write the new description to `~/.local/share/agent-skill-pr-descriptions/repo_owner/repo_name/pr-<number>-<timestamp>-new.md`, same timestamp as the backup file earlier.
 
-### 4. Update the PR
+### 4. Post the Update
 
 Use `gh pr edit <PR> --body "<updated>"` or equivalent tool to update the description.
-
-The original description is already backed up to `.git/pr-descriptions/` from step 1, so no inline backup is needed.
