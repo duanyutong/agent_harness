@@ -45,7 +45,7 @@ Keep comments polite, appreciative, collegial, and concise—avoid excessive ver
 
 For guidance on writing review body and inline comments, see [./standards/code-review.md](./standards/code-review.md).
 
-Present this report file to the user for approval or iteration.
+Present the location of this report file to the user for approval or iteration (format the file path as a link to enable one-click view).
 Do not repeat the file content in your response.
 
 #### Report Structure
@@ -73,9 +73,8 @@ In addition to the guidance in code-review.md, each inline comment in the report
 
 #### Report Location
 
-- Write to `~/.agents/pr-reviews/repo_owner/repo_name/pr-<number>-<timestamp>.md`.
-  Create directory if it does not exist.
-- Use ISO timestamp if applicable.
+- Write to `~/.local/share/agent-skill-pr-reviews/repo_owner/repo_name/pr-<number>-<timestamp>.md`.
+  Use ISO timestamp.
 - When iterating, update this report file without creating a new one.
 
 ### 4. Publish Review to GitHub
