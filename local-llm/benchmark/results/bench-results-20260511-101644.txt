@@ -1,0 +1,6 @@
+Benchmark run: Mon May 11 10:18:38 EDT 2026
+Hardware: Apple M3 Pro
+Trials: 5
+
+Engine         decode tok/s     TTFT (s)        Tools     RSS MB
+llama-server           46.6        0.082        10/10      25809
