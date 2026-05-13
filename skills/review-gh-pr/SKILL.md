@@ -20,8 +20,9 @@ Perform comprehensive code review with language-agnostic best practices and lang
 
 - Fetch PR Details: Get the PR description, linked issues, diff, existing review comments.
   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
-- Review Diff: Examine all changed files and the scope of modifications
 - Identify Language(s): Determine which programming languages are involved
+- Do not check out any branch code or modify local repo state.
+  If checking out code is necessary in addition to reviewing the diff, use a temporary git worktree.
 
 ### 2. Load Guidelines
 
@@ -137,7 +138,8 @@ Parameters:
 
 ### 5. Finalise
 
-Clean up any temporary worktree or branch you have created during the review.
+Clean up any temporary worktree or branch you have created only after the review has been completed.
+Do not preemptively clean up when iteration may still be needed.
 
 Provide the PR link back to the user for verification.
 Do not repeat the review content that has been posted in your response.
