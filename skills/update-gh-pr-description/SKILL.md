@@ -24,8 +24,9 @@ Fetch these in parallel:
   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 - PR template: look for template in repo in standard locations.
 - Existing description: fetch and back up the existing PR description.
-- Write to `~/.local/share/agent-skill-pr-descriptions/repo_owner/repo_name/pr-<number>-<timestamp>-backup.md`.
-  Use ISO timestamp.
+- Write to `.agents/pr-descriptions/pr-<number>-<timestamp>-backup.md` relative to the target repository root.
+  Always use a path-safe ISO timestamp in `Z` format.
+  Create the directory if it does not exist.
 
 Next, identify in the existing description:
 
@@ -56,7 +57,7 @@ The following information should be included in the updated description, in this
 - Testing: how it should be tested, each test item as a markdown checkbox
 - Ticket reference: include ticket link if known from the existing description or user input, otherwise leave placeholder (e.g., `[TICKET-XXX]`)
 
-Write the new description to `~/.local/share/agent-skill-pr-descriptions/repo_owner/repo_name/pr-<number>-<timestamp>-new.md`, same timestamp as the backup file earlier.
+Write the new description to `.agents/pr-descriptions/pr-<number>-<timestamp>-new.md`, same timestamp as the backup file earlier.
 
 ### 4. Post the Update
 

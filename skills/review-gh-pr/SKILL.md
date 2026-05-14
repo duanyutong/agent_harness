@@ -10,9 +10,19 @@ Perform comprehensive code review with language-agnostic best practices and lang
 
 ## When to Use this Skill
 
-- Reviewing a pull request
-- Providing feedback on code changes, or validating code quality standards
-- When user asks: "review this PR", "check this code", "code review", "review my changes"
+Use this skill when the user asks to:
+
+- Review a GitHub pull request by number, link, or current branch
+- Produce or post a GitHub PR review decision: approve, request changes, or comment
+- Review existing open PR review threads as part of a full PR review
+
+If repo-local instructions define another PR review workflow, follow this skill's procedure and use repo guidance only for project-specific standards not covered by this skill.
+
+Do not use this skill when the user asks to:
+
+- Address, implement, or reply to existing PR review comments; use `address-gh-pr-comments`
+- Update only the PR description; use `update-gh-pr-description`
+- Review non-PR local changes unless the user wants a GitHub PR review
 
 ## Workflow
 
@@ -77,8 +87,9 @@ In addition to the guidance in code-review.md, each inline comment in the Plan m
 
 #### Plan Location
 
-- Write to `~/.local/share/agent-skill-pr-reviews/repo_owner/repo_name/pr-<number>-<timestamp>.md`.
-  Use ISO timestamp.
+- Write to `.agents/pr-reviews/pr-<number>-<timestamp>.md` relative to the target repository root.
+  Always use a path-safe ISO timestamp in `Z` format.
+  Create the directory if it does not exist.
 - When iterating, update the Plan without creating a new one.
 - If upstream code changes require another review pass, append to the document and clearly label Round 1, Round 2, etc.
   Do not create a new document for each round.
