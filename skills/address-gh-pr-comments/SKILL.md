@@ -16,7 +16,7 @@ Structured workflow: pull comments → create plan → get approval → implemen
    Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 2. Fetch unresolved threads: filter for `isResolved: false` and where author hasn't replied yet
 3. Go through the threads and make a plan
-4. Present the plan file to the user for review and approval before proceeding  (format the file path as a link to enable one-click view).
+4. Present the plan file to the user for review and approval before proceeding (format the file path as a link to enable one-click view).
 
 Plan structure:
 
@@ -25,9 +25,9 @@ Plan structure:
 
 Plan location:
 
-- Write to `~/.local/share/agent-skill-pr-comments/repo_owner/repo_name/pr-<number>-<request_timestamp>.plan.md`.
-  Use ISO timestamp.
-  Create directory if it does not exist.
+- Write to `.agents/pr-comments/pr-<number>-<request_timestamp>.md` relative to the target repository root.
+  Always use a path-safe ISO timestamp in `Z` format.
+  Create the directory if it does not exist.
 
 ### Phase 2: Implement
 
