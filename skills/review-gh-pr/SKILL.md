@@ -31,8 +31,14 @@ Do not use this skill when the user asks to:
 - Fetch PR Details: Get the PR description, linked issues, diff, existing review comments.
   Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
 - Identify Language(s): Determine which programming languages are involved
-- Do not check out any branch code or modify local repo state.
-  If checking out code is necessary in addition to reviewing the diff, use a temporary git worktree.
+
+#### Worktree
+
+- Avoid modifying the user's active checkout (or default worktree).
+- If already in a dedicated review checkout, feel free to check out the PR branch when it makes review easier.
+- If not in a dedicated review checkout, create a temporary linked worktree with `git worktree add` when full code navigation, local tooling, or tests would materially improve the review.
+- For small or straightforward PRs, reviewing the PR diff and metadata via `gh` without creating a worktree is sufficient
+- Even when using a worktree, still use GitHub PR metadata, existing comments, etc. for accurate review publication.
 
 ### 2. Load Guidelines
 
