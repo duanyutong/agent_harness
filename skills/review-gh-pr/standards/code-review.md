@@ -17,9 +17,11 @@ For general coding principles and best practices, see [principles.md](../standar
 
 ## Providing Feedback
 
-- Be clear, grounded, and constructive
+- Be clear, specific, and constructive
+- Keep feedback warm, collegial, and polite
+- Suggest changes rather than demanding them
+- Ask questions when the intent is unclear rather than assume
 - Include disposition for each comment to distinguish blocking issues from nonblocking ones
-- Ask questions when intent is unclear rather than assuming
 
 ### Disposition Indicators
 
@@ -45,7 +47,8 @@ This convention is based on [Reviewable's disposition system](https://docs.revie
 
 A code review consists of:
 
-1. **Decision**: Approve, Request Changes, or Comment
+1. **Decision**: Approve, Request Changes, or Comment.
+   ("Request Changes" should be rarely needed--only when there is already an approval and a critical issue is discovered that must be resolved before merge)
 2. **Review Body**: High-level summary or architectural feedback
 3. **Inline Comments**: Line-by-line feedback on specific code
 
@@ -64,7 +67,14 @@ Do not elaborate, add multiple points, or repeat the inline comments. Examples:
 
 Each inline comment should:
 
-- Begin with one of the standard disposition indicators plus the issue type, e.g. "FYI (perf): ...", "Minor (readability): ..." without emphasis in bold
+- Begin with one of the standard disposition indicators plus the issue type without emphasis in bold.
+  State the issue type in parentheses (e.g. readability, design, correctness, security, etc.).
+  Use `Major (...):` sparingly only when flagging issues of utmost severity.
+  Examples:
+  - `FYI (perf):`
+  - `Minor (readability):`
+  - `Typo (doc)`
+  - `??? (intent):`
 - Describe the issue clearly and concisely, no more than one or two sentences
   - If clearly a bug, state it directly
   - If it is uncertain (could be intentional), ask clarifying questions instead of assuming

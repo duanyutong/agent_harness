@@ -35,9 +35,13 @@ Do not use this skill when the user asks to:
 #### Worktree
 
 - Avoid modifying the user's active checkout (or default worktree).
+- Before creating or switching to a temporary linked worktree, record the current repository root as the artifact root.
 - If already in a dedicated review checkout, feel free to check out the PR branch when it makes review easier.
 - If not in a dedicated review checkout, create a temporary linked worktree with `git worktree add` when full code navigation, local tooling, or tests would materially improve the review.
-- For small or straightforward PRs, reviewing the PR diff and metadata via `gh` without creating a worktree is sufficient
+- Use the temporary linked worktree only for inspecting code, running tools, and checking out PR branches.
+- Always write the Plan under the artifact root's `.agents/...` directory, even if code review happens in a temporary linked worktree.
+- If the agent starts inside a dedicated review checkout and no stable artifact root is known, write the Plan to the current checkout's `.agents/...` directory.
+- For small or straightforward PRs, reviewing the PR diff and metadata via `gh` without creating a worktree is sufficient.
 - Even when using a worktree, still use GitHub PR metadata, existing comments, etc. for accurate review publication.
 
 ### 2. Load Guidelines
@@ -69,8 +73,9 @@ Do not repeat the file content in your response.
 
 #### Plan Structure
 
+- PR information: title and number (with link), author
 - For human reviewer:
-  - Summary of changes: PR title, number (with link), purpose, and changes made
+  - Summary of changes: purpose and changes made
 - Open threads: each item in the numbered list should include:
   - GraphQL review thread node ID, link, summary
     - If only a REST review comment ID is available, fetch the GraphQL review thread node ID before publishing
@@ -93,7 +98,7 @@ In addition to the guidance in code-review.md, each inline comment in the Plan m
 
 #### Plan Location
 
-- Write to `.agents/pr-reviews/pr-<number>-<timestamp>.md` relative to the target repository root.
+- Write to `.agents/pr-reviews/pr-<number>-<timestamp>.md` relative to the artifact root.
   Always use a path-safe ISO timestamp in `Z` format.
   Create the directory if it does not exist.
 - When iterating, update the Plan without creating a new one.
@@ -105,9 +110,12 @@ In addition to the guidance in code-review.md, each inline comment in the Plan m
 Once approved, take the latest state of the Plan (possibly modified by user) and post via CLI using raw `export GH_PAGER=cat && gh api graphql`.
 Make sure to avoid duplicate publications; only retry when the call has failed due to a network or server error.
 
-Use one pending review for the entire publication whenever the review includes replies to existing threads, or when publishing mixed existing-thread replies and new inline comments. Do not use `gh pr review` for this case: it cannot attach replies to existing review threads. Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
+Use one pending review for the entire publication whenever the review includes replies to existing threads, or when publishing mixed existing-thread replies and new inline comments.
+Do not use `gh pr review` for this case: it cannot attach replies to existing review threads.
+Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
 
-If any publish request fails after creating the pending review, do not blindly rerun the same request. Inspect the pending review or delete and recreate it before retrying so replies or inline threads are not duplicated.
+If any publish request fails after creating the pending review, do not blindly rerun the same request.
+Inspect the pending review or delete and recreate it before retrying so replies or inline threads are not duplicated.
 
 #### GraphQL Pending Review Workflow
 
@@ -235,7 +243,7 @@ References:
 
 ### 5. Finalise
 
-Clean up any temporary worktree or branch you have created only after the review has been completed.
+Clean up any temporary worktree or branch you have created after the review has been completed.
 Do not preemptively clean up when iteration may still be needed.
 
 Provide the PR link back to the user for verification.
