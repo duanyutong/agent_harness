@@ -1,6 +1,6 @@
 ---
 name: review-gh-pr
-description: "Perform comprehensive code review and post review to the GitHub PR"
+description: "Perform comprehensive code review and post a review to the GitHub PR"
 argument-hint: "Optionally specify PR number or link"
 ---
 
@@ -16,7 +16,7 @@ Use this skill when the user asks to:
 - Produce or post a GitHub PR review decision: approve, request changes, or comment
 - Review existing open PR review threads as part of a full PR review
 
-If repo-local instructions define another PR review workflow, follow this skill's procedure and use repo guidance only for project-specific standards not covered by this skill.
+If repository-local instructions define another PR review workflow, follow this skill's procedure and use repository guidance only for project-specific standards not covered by this skill.
 
 Do not use this skill when the user asks to:
 
@@ -28,26 +28,31 @@ Do not use this skill when the user asks to:
 
 ### 1. Gather Context
 
-- Fetch PR Details: Get the PR description, linked issues, diff, existing review comments.
-  Make sure to avoid alternative buffer issues (e.g. due to pagers like `less`) by using `export GH_PAGER=cat && gh ...`.
-- Identify Language(s): Determine which programming languages are involved
+- Fetch PR details: retrieve the PR description, linked issues, and diff.
+- Fetch existing reviews and comments, including their status (open or resolved), authorship, and content.
+  - When only a REST review comment ID is available, find the parent GraphQL review thread node ID before publishing; GraphQL replies require the thread ID, not the comment ID.
+- Identify languages: determine which programming languages are involved.
+- Locate any prior review rounds we conducted by checking the repository's `.agents/pr-reviews/pr-<number>-<timestamp>.md` files.
+
+Use the best available PR and issue access mechanism in the execution environment.
+The `gh` CLI is one viable option. When using it, if a command hangs or buffers output because a pager is active, retry with `GH_PAGER=cat`, for example `export GH_PAGER=cat && gh ...`.
 
 #### Worktree
 
 - Avoid modifying the user's active checkout (or default worktree).
-- Before creating or switching to a temporary linked worktree, record the current repository root as the artifact root.
-- If already in a dedicated review checkout, feel free to check out the PR branch when it makes review easier.
+- Before creating or switching to a temporary linked worktree, record the current repository root as the artefact root.
+- If already in a dedicated review checkout, check out the PR branch when doing so materially improves the review.
 - If not in a dedicated review checkout, create a temporary linked worktree with `git worktree add` when full code navigation, local tooling, or tests would materially improve the review.
 - Use the temporary linked worktree only for inspecting code, running tools, and checking out PR branches.
-- Always write the Plan under the artifact root's `.agents/...` directory, even if code review happens in a temporary linked worktree.
-- If the agent starts inside a dedicated review checkout and no stable artifact root is known, write the Plan to the current checkout's `.agents/...` directory.
-- For small or straightforward PRs, reviewing the PR diff and metadata via `gh` without creating a worktree is sufficient.
-- Even when using a worktree, still use GitHub PR metadata, existing comments, etc. for accurate review publication.
+- Always write the Plan under the artefact root's `.agents/...` directory, even if code review happens in a temporary linked worktree.
+- If the agent starts inside a dedicated review checkout and no stable artefact root is known, write the Plan to the current checkout's `.agents/...` directory.
+- For small or straightforward PRs, reviewing the PR diff and metadata through the available GitHub access mechanism without creating a worktree is sufficient.
+- Even when using a worktree, still use GitHub PR metadata, existing comments, and related review data for accurate publication.
 
 ### 2. Load Guidelines
 
-First check if there are guidelines available in the repo.
-Prefer these repo-specific guidelines if there are conflicts with general best practices.
+First check whether the repository provides its own guidelines.
+Prefer these repository-specific guidelines if they conflict with general best practices.
 
 Use a read_file tool to load guideline files from the `./standards/` directory next to this skill file:
 
@@ -55,66 +60,125 @@ Use a read_file tool to load guideline files from the `./standards/` directory n
 - Always load the code review guidelines from [./standards/code-review.md](./standards/code-review.md).
 - For each detected language, attempt to load the corresponding language-specific guideline file from `./standards/{language}.md`. Available guidelines include:
   - Python: [./standards/python.md](./standards/python.md)
-  - More to be added
+  - Shell: [./standards/shell.md](./standards/shell.md)
+  - Additional language-specific guidelines may be added over time
 
-If guidelines for the detected language don't exist, use your best effort to apply known best modern practices and standards for this language.
+If no guideline exists for the detected language, apply established modern practices and standards for that language.
 
 ### 3. Conduct Review
 
-Review everything, apply the guidelines, and generate a Markdown document (the “Plan”).
-Keep comments polite, appreciative, collegial, and concise—avoid excessive verbosity.
+Review all materials gathered, apply the guidelines, and generate a Markdown document (the “Plan”).
+If prior review rounds exist, link to each earlier plan and summarise what changed since the most recent round.
 
-For guidance on writing review body and inline comments, see [./standards/code-review.md](./standards/code-review.md).
-
-Present the location of the Plan to the user for approval or iteration.
+After drafting is complete, present the Plan location to the user for approval or iteration.
 Format the file path as a link to enable one-click view.
 Stop here and wait for manual approval.
 Do not repeat the file content in your response.
 
+#### Tone
+
+Keep comments polite, appreciative, collegial, and concise—avoid excessive verbosity.
+
 #### Plan Structure
 
-- PR information: title and number (with link), author
+- PR information: title and number (with link), author, base branch, head branch, and reviewed commit
 - For human reviewer:
-  - Summary of changes: purpose and changes made
-- Open threads: each item in the numbered list should include:
-  - GraphQL review thread node ID, link, summary
-    - If only a REST review comment ID is available, fetch the GraphQL review thread node ID before publishing
-  - Draft of reply if applicable
-    - Participate in every open thread where we haven't weighed in or need to respond again
-    - Keep it simple when appropriate—a brief "+1" with one sentence suffices if there's nothing more to add
-    - Provide a more detailed response when it adds value to the discussion
+  - Summary of PR: purpose and changes made
 - Review draft:
-  - Decision: Approve, Request Changes, or Comment
-  - Body
-  - A numbered list of inline comments
+  - Existing threads
+  - Decision (Approve, Request Changes, or Comment)
+  - Review body
+  - Proposed new inline comments
 
-#### Inline Comments Format
+#### Plan Formatting
 
-In addition to the guidance in code-review.md, each inline comment in the Plan must:
+- Use blank lines between logical paragraphs.
+  Do not rely on a single newline for visual separation.
+- When using numbered lists for repeated items, fully indent all subordinate content within each item.
 
-- Cite the file path and line numbers (this will be used for posting the review, so please ensure accuracy)
-- Cite the diff side—LEFT for deletions, RIGHT for additions (required and protected—always preserve this part when modifying the comment text)
-- Include a block quote of the relevant code snippet (for human review only; do not post this part)
+#### Writing Review
+
+For guidance on writing review body and comments, see [./standards/code-review.md](./standards/code-review.md).
+
+#### Requirements for the "Existing Threads" Section
+
+In this section, review every existing PR review thread.
+If there are no existing review threads to include, write `None.`.
+
+For each thread, use the following format:
+
+- A numbered heading
+- Status (Open or Resolved)
+- Original poster
+- Location (file and line numbers)
+- Concern: summarise the primary concern raised by the original comment.
+- Resolution: if the thread is resolved, summarise how it was resolved; if it remains open, write `Pending`
+
+Example item:
+
+```markdown
+#### 1. [Open] thread `[PRRT_kwDOPQThtM6Cgh_F]`(http://link-to-thread)
+
+- Status: Open
+- Original poster: @user-reviewer_x
+- Location: `src/random_utils.py:42`
+- Concern: The variable name contains a typographical error.
+- Resolution: Pending.
+- Draft reply: None; the thread is awaiting author action.
+```
+
+Apply the following policy when deciding whether to draft replies to existing threads:
+
+- If the thread is resolved:
+  - If it has been addressed satisfactorily by new revisions, no reply is needed.
+  - If it appears to have been resolved without being addressed, draft a concise reply that records the remaining concern. For minor non-blocking issues, state that the concern remains but does not block approval. For potentially substantive issues, ask the author to confirm whether the concern has merit or is a false positive and, if it has merit, whether it is being intentionally left unaddressed or will be addressed.
+- If the thread is open:
+  - If it is still awaiting PR author action or response, and no additional review input would advance the discussion, do not draft a reply.
+  - If a prior reviewer has raised a concern with which we agree, draft a brief `+1` reply only when explicit concurrence would clarify the review position.
+  - If clarification, additional evidence, or a distinct technical perspective would advance the discussion, draft an informative reply rather than restating prior comments.
+
+#### Requirements for the "Proposed New Inline Comments" Section
+
+If there are no proposed new inline comments, write `None.`.
+Do not include existing-thread replies in this section.
+
+Each item must include:
+
+- File path: relative path to the repository root
+- Location in file: target line number, or line range (this will be used for posting the review, so please ensure accuracy)
+- Side: `LEFT` for deletions or `RIGHT` for additions
+- Block quote of the relevant code snippet
+- Comment: exact comment body to publish
+
+Example item:
+
+````markdown
+1. `src/package/example.py`, lines 42-45, RIGHT
+
+   > ```
+   > code snippet quote
+   > ```
+
+   Minor (readability): ...
+````
 
 #### Plan Location
 
-- Write to `.agents/pr-reviews/pr-<number>-<timestamp>.md` relative to the artifact root.
-  Always use a path-safe ISO timestamp in `Z` format.
+- Write to `.agents/pr-reviews/pr-<number>-<timestamp>.md` relative to the artefact root.
+  Always use a path-safe ISO timestamp in `Z` format, for example `2024-06-01T12-00-00Z`.
   Create the directory if it does not exist.
-- When iterating, update the Plan without creating a new one.
-- If upstream code changes require another review pass, append to the document and clearly label Round 1, Round 2, etc.
-  Do not create a new document for each round.
+- When iterating the same round, update the same Plan without creating a new one.
 
 ### 4. Publish Review to GitHub
 
-Once approved, take the latest state of the Plan (possibly modified by user) and post via CLI using raw `export GH_PAGER=cat && gh api graphql`.
-Make sure to avoid duplicate publications; only retry when the call has failed due to a network or server error.
+Once approved, take the latest state of the Plan (possibly modified by the user) and publish it through the available GitHub API mechanism. When publishing via `gh`, use raw `gh api graphql`; if pager handling is not already configured and output buffering occurs, prefix commands with `GH_PAGER=cat`, for example `export GH_PAGER=cat && gh api graphql`.
+Take care to avoid duplicate publications; only retry when the call has failed due to a network or server error.
 
 Use one pending review for the entire publication whenever the review includes replies to existing threads, or when publishing mixed existing-thread replies and new inline comments.
 Do not use `gh pr review` for this case: it cannot attach replies to existing review threads.
 Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
 
-If any publish request fails after creating the pending review, do not blindly rerun the same request.
+If any publish request fails after creating the pending review, do not retry the same request without inspection.
 Inspect the pending review or delete and recreate it before retrying so replies or inline threads are not duplicated.
 
 #### GraphQL Pending Review Workflow
@@ -227,7 +291,7 @@ Parameters:
 - `pullRequestReviewThreadId`: The GraphQL node ID of the existing review thread to reply to
 - `event`: `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`
 - New inline thread fields:
-  - `path`: File path relative to repo root
+  - `path`: File path relative to the repository root
   - `line`: Line number; for multi-line comments, the end line
   - `side`: `LEFT` for deletions or `RIGHT` for additions
   - `startLine` and `startSide`: Include for multi-line comments
