@@ -1,25 +1,25 @@
-# Benchmarking the local-LLM candidates
+# Benchmarking the Local-LLM Candidates
 
-Reproducible head-to-head bench used to pick the winner (see [`../README.md`](../README.md) for the full writeup and decision).
+Reproducible head-to-head benchmark used to select the engine. See [`../README.md`](../README.md) for the full write-up and decision.
 
 ## Engines under test
 
 | Engine       | Setup script            | Port  | Notes                                                                                                  |
 | ------------ | ----------------------- | ----- | ------------------------------------------------------------------------------------------------------ |
-| Rapid-MLX    | `rapid-mlx-setup.sh`    | 8000  | MLX runtime — the chosen winner                                                                        |
-| llama-server | `llama-server-setup.sh` | 18080 | llama.cpp at full power (1 slot × 96 K context)                                                        |
+| Rapid-MLX    | `rapid-mlx-setup.sh`    | 8000  | MLX runtime — the selected engine                                                                      |
+| llama-server | `llama-server-setup.sh` | 18080 | llama.cpp with full configuration control (1 slot × 96 K context)                                      |
 | oMLX         | `omlx-setup.sh`         | 8001  | MLX + SSD-backed 2-tier KV cache                                                                       |
 | DMR          | `dmr-setup.sh`          | 12434 | Docker Model Runner — **considered, rejected** (see README §Background); kept here for reproducibility |
 
-## One-time prep
+## One-time Preparation
 
 ```bash
 chmod +x *.sh
 ```
 
-Pre-flight before each round: plug in, "High Performance" energy mode, close Chrome / Slack / Zoom. Run one engine at a time (36 GB RAM = only one ~17 GB model resident).
+Before each benchmark round: plug in, use "High Performance" energy mode, and close Chrome, Slack, and Zoom. Run one engine at a time; 36 GB RAM permits only one approximately 17 GB model to remain resident.
 
-## Standard bench (decode tok/s, TTFT, tool-call reliability, RSS)
+## Standard Benchmark (decode tok/s, TTFT, tool-call reliability, RSS)
 
 ```bash
 ./bench.sh --only-rapid                          # Rapid-MLX (port 8000)
@@ -30,9 +30,9 @@ Pre-flight before each round: plug in, "High Performance" energy mode, close Chr
 
 Defaults: 3 trials × 500 max-tokens, 3 TTFT trials, 3 tool-call trials → ~1 min/engine.
 
-Tighter median? `--trials 5 --max-tokens 1000 --ttft-trials 5 --tool-trials 10` → ~3 min/engine.
+For a more reliable median: `--trials 5 --max-tokens 1000 --ttft-trials 5 --tool-trials 10` → ~3 min/engine.
 
-Quick eyeball? `--quick` → ~25 s/engine.
+For an approximate check: `--quick` → ~25 s/engine.
 
 ## Prefix-replay test (does the engine cache repeated prefixes?)
 
@@ -54,7 +54,7 @@ Useful for measuring the cache durability of each engine independent of decode s
 
 ## Output
 
-Each run writes `results/bench-results-YYYYMMDD-HHMMSS.txt`. Past runs are in [`results/`](results/) — both the historical evolution (some early runs were before bug fixes) and the final clean numbers used in the decision.
+Each run writes `results/bench-results-YYYYMMDD-HHMMSS.txt`. Prior runs are stored in [`results/`](results/), including both historical runs before bug fixes and the final clean numbers used in the decision.
 
 ## Re-running from a clean slate
 

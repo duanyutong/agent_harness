@@ -1,15 +1,15 @@
 # Agent Harness
 
-General harness-level tools for agentic coding.
+General harness-level tooling for agentic coding workflows.
 
-Written in agent-agnostic ways to promote reusablity across different agent frameworks.
+Written in an agent-agnostic manner to support reuse across agent frameworks.
 
 ## Local Setup
 
-Example commands
+Example commands:
 
 ```sh
-# assume cloning to ~/
+# Assumes the repository was cloned to ~/agent_harness.
 mkdir -p ~/.agents && ln -s ~/agent_harness/skills ~/.agents/skills
 ```
 
@@ -18,9 +18,9 @@ mkdir -p ~/.agents && ln -s ~/agent_harness/skills ~/.agents/skills
 Pre-commit hooks are managed by [prek](https://github.com/j178/prek).
 
 1. Install `prek` and make it available in your `PATH`.
-2. Install git hooks in the repo with `prek install`.
+2. Install git hooks in the repository with `prek install`.
 
-To run it on all files, use
+To run validation on all files, use:
 
 ```sh
 prek run --all-files

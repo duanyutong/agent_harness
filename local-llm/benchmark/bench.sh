@@ -1,39 +1,40 @@
 #!/usr/bin/env bash
 # =============================================================================
-# bench.sh — Benchmark 4 local LLM engines against each other on the same model
+# bench.sh - Benchmark four local LLM engines on the same model
 #
 # ENGINES UNDER TEST:
 #   rapid : Rapid-MLX        (port 8000,  model "qwen3-coder-30b")
 #   dmr   : Docker Model Runner (port 12434, llama.cpp backend, GGUF Q4_K_XL)
-#   llama : Raw llama-server (port 18080, llama.cpp at full power)
+#   llama : Raw llama-server (port 18080, direct llama.cpp runtime control)
 #   omlx  : oMLX             (port 8001,  MLX + SSD KV cache)
 #
 # USAGE:
-#   ./bench.sh                  # bench every reachable engine
+#   ./bench.sh                  # benchmark every reachable engine
 #   ./bench.sh --only-rapid     # only Rapid-MLX
 #   ./bench.sh --only-dmr       # only DMR
 #   ./bench.sh --only-llama     # only llama-server
 #   ./bench.sh --only-omlx      # only oMLX
 #
-#   ./bench.sh --quick          # ~25s/engine (1 trial × 500 tok, 1 TTFT, 2 tool calls)
-#                                 For "which is faster" eyeball runs.
+#   ./bench.sh --quick          # ~25s/engine (1 trial x 500 tok, 1 TTFT, 2 tool calls)
+#                                 For informal comparative runs.
 #
 #   ./bench.sh --trials 5 --max-tokens 2000 --ttft-trials 5 --tool-trials 5
-#                                 Override individual knobs. Defaults:
+#                                 Override individual settings. Defaults:
 #                                 trials=3, max-tokens=500, ttft-trials=3, tool-trials=3.
 #
 #   ./bench.sh --prefix-replay --endpoint http://localhost:8001/v1 \
 #                              --model Qwen3-Coder-30B-A3B-Instruct-4bit
 #       Sends a long fixed prefix repeatedly with varying tails. Measures TTFT
 #       per trial. Used to detect engines with prefix/SSD KV caching (oMLX).
-#       Trials 1-5 sleep 30s between each (lets RAM cache evict, SSD persists).
+#       Trials 1-5 sleep 30s between each (allows RAM cache eviction while SSD persists).
 #
 # PREREQUISITES:
 #   The relevant engine must be running. The script issues a `ping` to each
 #   endpoint up front; unreachable engines are skipped.
 #
-#   Hardware: plug in, "High Performance" energy mode, close heavy apps.
-#   Run engines one at a time on 36 GB — don't try to keep all four loaded.
+#   Hardware: connect power, use "High Performance" energy mode, and close
+#   resource-intensive applications. Run engines one at a time on 36 GB; do
+#   not attempt to keep all four loaded.
 #
 # RESULTS:
 #   Saved to ./bench-results-<timestamp>.txt and printed at end of run.
@@ -47,7 +48,7 @@ TOOL_TRIALS=3
 RESULTS_FILE="$(dirname "$0")/bench-results-$(date +%Y%m%d-%H%M%S).txt"
 
 # ---- engine registry --------------------------------------------------------
-# Parallel arrays (bash 3.2-compatible — no associative arrays so we work on
+# Parallel arrays (bash 3.2-compatible; no associative arrays so we work on
 # stock macOS bash without requiring Homebrew bash).
 ENGINES=(rapid dmr llama omlx)
 ENGINE_NAMES=("Rapid-MLX" "DMR" "llama-server" "oMLX")
@@ -89,8 +90,8 @@ TOOL_PROMPT_BODY="List 3 Python built-in functions as a JSON array of strings."
 # ---- helpers ----------------------------------------------------------------
 
 is_reachable() {
-  # Hit the /models metadata endpoint — instant, doesn't trigger a model load.
-  # (Sending a real /chat/completions request times out on engines that load
+  # Query the /models metadata endpoint; it is immediate and does not trigger a
+  # model load. (Sending a real /chat/completions request times out on engines that load
   #  the model lazily on first request, e.g. oMLX after a fresh restart.)
   local endpoint="$1"
   curl -sf -o /dev/null --max-time 5 "${endpoint}/models"
@@ -213,8 +214,8 @@ import sys, time, json, urllib.request, random, string
 
 endpoint, model = sys.argv[1], sys.argv[2]
 
-# Stable prefix: ~3K tokens. The exact content doesn't matter — only that it's
-# identical across trials so a prefix cache can hit on it.
+# Stable prefix: ~3K tokens. The exact content is immaterial; it only needs to
+# remain identical across trials so a prefix cache can match it.
 SYSTEM = (
     "You are a senior software engineer reviewing changes to a large "
     "TypeScript and Python codebase. Follow the team style guide rigorously. "
@@ -345,7 +346,7 @@ if [ "${MODE}" = "prefix-replay" ]; then
   exit 0
 fi
 
-# If no --only-* given, auto-detect reachable engines
+# If no --only-* flag is supplied, auto-detect reachable engines.
 if [ ${#SELECTED[@]} -eq 0 ]; then
   for e in "${ENGINES[@]}"; do
     i=$(idx_of "$e")

@@ -5,9 +5,9 @@ This document outlines language-agnostic software engineering principles and bes
 ## Core Principles
 
 - SOLID: The five principles of OOP (Robert C. Martin, 2000)
-- DRY: Don't Repeat Yourself (Hunt & Thomas, _The Pragmatic Programmer_, 1999)
-- KISS: Keep It Simple, Stupid (Kelly Johnson, Lockheed Skunk Works, 1960s)
-- YAGNI: You Aren't Gonna Need It (Kent Beck, _Extreme Programming Explained_, 1999)
+- DRY: Do Not Repeat Yourself (Hunt & Thomas, _The Pragmatic Programmer_, 1999)
+- KISS: Keep It Simple (Kelly Johnson, Lockheed Skunk Works, 1960s)
+- YAGNI: You Are Not Going To Need It (Kent Beck, _Extreme Programming Explained_, 1999)
 - Separation of Concerns (Dijkstra, "On the role of scientific thought", 1974)
 - Unix Philosophy (Doug McIlroy, _Bell System Technical Journal_, 1978)
 
@@ -33,7 +33,7 @@ Reference: Gerard J. Holzmann, _IEEE Computer_ (2006)
 Secure code protects data and systems from unauthorised access, misuse, and exploitation.
 
 - **Validation**: Define explicit trust boundaries and validate all input at these boundaries
-- **Sanitization**: Sanitise raw input data before use in SQL, HTML, etc.
+- **Sanitisation**: Sanitise raw input data before use in SQL, HTML, and similar contexts
 - **Secrets Management**: Never commit secrets to version control; use environment variables or vaults instead
 
 ## Design Patterns
@@ -41,7 +41,7 @@ Secure code protects data and systems from unauthorised access, misuse, and expl
 Design patterns are proven solutions to recurring problems.
 They improve code readability, maintainability, and scalability.
 
-- Patterns are solutions to recurring problems—don't force-fit them
+- Patterns are solutions to recurring problems; do not force them into unsuitable contexts
 - Prefer the simplest solution; introduce patterns when complexity demands
 - Name patterns in code (e.g., `UserFactory`, `PaymentStrategy`) for clarity
 
@@ -78,7 +78,7 @@ Tests verify correctness, document behaviour, and enable safe refactoring.
   - Validate all inputs at system boundaries
   - Check preconditions at function entry
   - Assert invariants that should always hold
-  - Fail fast and loud rather than silently corrupting state
+  - Fail promptly and explicitly rather than silently corrupting state
   - Never trust external data (user input, files, network, environment variables)
 - Idempotency
   - Operations that can be safely retried should produce the same result

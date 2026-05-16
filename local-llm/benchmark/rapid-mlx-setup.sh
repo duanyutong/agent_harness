@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Approach A: Rapid-MLX (native Metal, host-side daemon) — setup script
+# Approach A: Rapid-MLX (native Metal, host-side daemon) - setup script
 #
 # WHAT THIS SCRIPT DOES:
-#   1. Installs rapid-mlx via Homebrew (idempotent — skips if already present).
+#   1. Installs rapid-mlx via Homebrew (idempotent; skips if already present).
 #   2. Runs `rapid-mlx doctor` for a quick environment health check.
 #   3. Starts `rapid-mlx serve` in the foreground on port 8000. On first run,
 #      this downloads ~17 GB of MLX 4-bit weights from Hugging Face into
 #      `~/.cache/huggingface/hub/`. Subsequent runs use the cache.
 #
-# CRITICAL: ALIAS NAME — THIS IS A TRAP.
+# CRITICAL: ALIAS DISTINCTION.
 #   The Rapid-MLX alias `qwen3-coder` (no suffix) routes to
 #   `lmstudio-community/Qwen3-Coder-Next-MLX-4bit` — a *different*, much larger
 #   MoE model that requires a ~40 GB download. The 30B model that matches DMR
@@ -31,16 +31,16 @@
 #
 # DEBUGGING:
 #   rapid-mlx doctor          # Metal / Python environment check
-#   rapid-mlx info <alias>    # Show what HF repo an alias resolves to
-#   rapid-mlx models          # List all aliases (suffix tier hints)
+#   rapid-mlx info <alias>    # Show the Hugging Face repository for an alias
+#   rapid-mlx models          # List all aliases and suffix tier indicators
 #
 # REQUIRES: macOS, Apple Silicon, Homebrew, ~17 GB free disk + ~17 GB free RAM.
 # =============================================================================
 set -euo pipefail
 
 PORT=8000
-MODEL="qwen3-coder-30b"   # → mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit (~17 GB).
-                          # Do NOT use bare "qwen3-coder" — that's the 80B Next model (40+ GB).
+MODEL="qwen3-coder-30b"   # -> mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit (~17 GB).
+                          # Do NOT use unsuffixed "qwen3-coder"; it is the 80B Next model (40+ GB).
 ENDPOINT="http://localhost:${PORT}/v1"
 
 echo "=== Approach A: Rapid-MLX (native Metal) ==="

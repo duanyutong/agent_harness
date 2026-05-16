@@ -42,7 +42,7 @@ Essential PEPs to follow:
 - **Avoid single-letter variable names** in most contexts except for:
   - **Loop indices**: `for i in range(n):`, `for i, item in enumerate(items):`
   - **Scientific/mathematical code**: `x`, `y`, `z` for coordinates; `t` for time; domain-standard conventions
-  - **Discarded values**: `_` for values you don't need (`_ = await call()`)
+  - **Discarded values**: `_` for values that are not required (`_ = await call()`)
   - **Type variables**: `T`, `K`, `V` per PEP 484
 
 ## Imports
@@ -57,7 +57,7 @@ Essential PEPs to follow:
   - Always use type hints for function arguments and return types.
   - For variables that are not immediately obvious, add type annotations for clarity.
 - **Mutable globals**: Avoid. If unavoidable, make private with leading `_` and expose only public functions
-- **Function defaults**: Never use mutable objects as default values (lists, dicts); use `None` and initialize in function body
+- **Function defaults**: Never use mutable objects as default values (lists, dicts); use `None` and initialise in the function body
 - **Readability**:
   - Declare variable types before `if/else` branches
   - Use context managers for resource management (`with` statements)
@@ -77,8 +77,8 @@ Essential PEPs to follow:
 - **Formatting**: `ruff format` for consistent style
 - **Linting**: `ruff check` for code quality
 - **Static analysis**: `pyright` for type checking and safety
-- **Modern features**: Fully utilize language features (`Self`, `Final`, `@final`, `@override`, `match`/`case`)
-- **Type narrowing**: Use `cast` only when necessary and it produces correct behavior
+- **Modern features**: Use language features fully (`Self`, `Final`, `@final`, `@override`, `match`/`case`)
+- **Type narrowing**: Use `cast` only when necessary and it produces correct behaviour
 
 ## Enums
 
@@ -109,7 +109,7 @@ In order of preference:
 
 ## Command-Line Interfaces
 
-- Prefer **`cyclopts`** over `argparse` or `click` for type-safe CLI (auto-generates from type hints)
+- Prefer **`cyclopts`** over `argparse` or `click` for type-safe CLI (generates automatically from type hints)
 - Use `#!/usr/bin/env -S uv run --script` in shebang
 - Use proper exit codes (0 for success, non-zero for errors)
 
@@ -131,8 +131,8 @@ In order of preference:
 - **Conftest**: Use `conftest.py` at each directory level for scoped fixtures
 - **Sandboxing**: Define fixtures to block network access for unit tests
 - **Markers**: Define a fixed set of custom markers (unit, integration, manual, network) similar to Bazel tags
-- **Grouping**: Use test classes to organize related tests; use `@staticmethod` when appropriate
-- **Parametrization**: Use `@pytest.mark.parametrize` with `ids` for multiple input/output cases
+- **Grouping**: Use test classes to organise related tests; use `@staticmethod` when appropriate
+- **Parametrisation**: Use `@pytest.mark.parametrize` with `ids` for multiple input/output cases
 - **Patching**: Prefer `mock.patch.object()` over `mock.patch()` for better type checking and maintainability
 - **Asyncio**: Configure `asyncio_mode = "auto"` project-wide; skip `@pytest.mark.asyncio` on functions
 - **Naming**: Keep test names descriptive and concise

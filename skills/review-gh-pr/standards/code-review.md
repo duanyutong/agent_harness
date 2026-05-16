@@ -18,7 +18,7 @@ For general coding principles and best practices, see [principles.md](../standar
 ## Providing Feedback
 
 - Be clear, specific, and constructive
-- Keep feedback warm, collegial, and polite
+- Keep feedback respectful, collegial, and precise
 - Suggest changes rather than demanding them
 - Ask questions when the intent is unclear rather than assume
 - Include disposition for each comment to distinguish blocking issues from nonblocking ones
@@ -27,9 +27,9 @@ For general coding principles and best practices, see [principles.md](../standar
 
 Disposition indicators improve code review effectiveness by:
 
-- **Reducing ambiguity**: Authors know exactly what's blocking vs. optional, avoiding wasted effort on misinterpretation
+- **Reducing ambiguity**: Authors know exactly what is blocking and what is optional, avoiding wasted effort on misinterpretation
 - **Enabling async workflows**: Clear signals allow distributed resolution without synchronous clarification
-- **Maintaining positive tone**: Marking nitpicks as "nit" or "minor" signals they're about making small improvements, not severe criticisms
+- **Maintaining positive tone**: Marking nitpicks as "nit" or "minor" signals that they concern minor improvements, not severe criticisms
 - **Speeding up resolution**: Reviewers and authors quickly align on what must be addressed before merge
 
 Use the following table of standard disposition indicators in the beginning of each comment to indicate the severity and nature of the issue.
@@ -54,13 +54,13 @@ A code review consists of:
 
 ### Review Body
 
-If there are high-level issues regarding the architecture, design, or code organization, not tied to specific files or lines, describe them here in a concise manner and provide constructive suggestions for improvement.
+If there are high-level issues regarding the architecture, design, or code organisation, not tied to specific files or lines, describe them here in a concise manner and provide constructive suggestions for improvement.
 
 If no high-level issues exist, include a **one-sentence** summary.
 Do not elaborate, add multiple points, or repeat the inline comments. Examples:
 
 - "Clean implementation with clear separation of concerns; a few minor comments below."
-- "LGTM; just a couple of nits."
+- "LGTM; minor comments only."
 - "Thanks for putting this together."
 
 ### Inline Comments
@@ -68,7 +68,7 @@ Do not elaborate, add multiple points, or repeat the inline comments. Examples:
 Each inline comment should:
 
 - Begin with one of the standard disposition indicators plus the issue type without emphasis in bold.
-  State the issue type in parentheses (e.g. readability, design, correctness, security, etc.).
+  State the issue type in parentheses, for example readability, design, correctness, or security.
   Use `Major (...):` sparingly only when flagging issues of utmost severity.
   Examples:
   - `FYI (perf):`
@@ -95,6 +95,6 @@ When reviewing or writing code, verify:
 - [ ] No unnecessary complexity or over-engineering
 - [ ] Functions/methods are focused and reasonably sized
 - [ ] Error handling is explicit and appropriate
-- [ ] Security practices are followed (input validation, no secrets, sanitization)
+- [ ] Security practices are followed (input validation, no secrets, sanitisation)
 - [ ] Performance is adequate for the use case (profiling if needed)
 - [ ] No obvious bugs or edge cases are missed
