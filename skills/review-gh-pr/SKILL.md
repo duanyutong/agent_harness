@@ -85,7 +85,7 @@ Keep comments polite, appreciative, collegial, and concise—avoid excessive ver
 - For human reviewer:
   - Summary of PR: purpose and changes made
 - Review draft:
-  - Existing threads
+  - Existing review threads
   - Decision (Approve, Request Changes, or Comment)
   - Review body
   - Proposed new inline comments
@@ -100,31 +100,32 @@ Keep comments polite, appreciative, collegial, and concise—avoid excessive ver
 
 For guidance on writing review body and comments, see [./standards/code-review.md](./standards/code-review.md).
 
-#### Requirements for the "Existing Threads" Section
+#### Requirements for the "Existing Review Threads" Section
 
 In this section, review every existing PR review thread.
 If there are no existing review threads to include, write `None.`.
 
-For each thread, use the following format:
+Use a numbered list for included threads.
+For each thread, use one numbered list item with all subordinate content fully indented within that item.
+Each item must include the following fields in this order:
 
-- A numbered heading
 - Status (Open or Resolved)
 - Original poster
 - Location (file and line numbers)
 - Concern: summarise the primary concern raised by the original comment.
 - Resolution: if the thread is resolved, summarise how it was resolved; if it remains open, write `Pending`
+- Draft reply: exact reply body to publish, or `None` with a concise reason
 
 Example item:
 
 ```markdown
-#### 1. [Open] thread `[PRRT_kwDOPQThtM6Cgh_F]`(http://link-to-thread)
-
-- Status: Open
-- Original poster: @user-reviewer_x
-- Location: `src/random_utils.py:42`
-- Concern: The variable name contains a typographical error.
-- Resolution: Pending.
-- Draft reply: None; the thread is awaiting author action.
+1. [Open] thread `[PRRT_kwDOPQThtM6Cgh_F]`(http://link-to-thread)
+   - Status: Open
+   - Original poster: @user-reviewer_x
+   - Location: `src/random_utils.py:42`
+   - Concern: The variable name contains a typographical error.
+   - Resolution: Pending.
+   - Draft reply: None; the thread is awaiting author action.
 ```
 
 Apply the following policy when deciding whether to draft replies to existing threads:
@@ -142,7 +143,9 @@ Apply the following policy when deciding whether to draft replies to existing th
 If there are no proposed new inline comments, write `None.`.
 Do not include existing-thread replies in this section.
 
-Each item must include:
+Use a numbered list for proposed new inline comments.
+For each proposed comment, use one numbered list item with all subordinate content fully indented within that item.
+Each item must include the following fields in this order:
 
 - File path: relative path to the repository root
 - Location in file: target line number, or line range (this will be used for posting the review, so please ensure accuracy)
@@ -159,7 +162,7 @@ Example item:
    > code snippet quote
    > ```
 
-   Minor (readability): ...
+   Comment: Minor (readability): ...
 ````
 
 #### Plan Location

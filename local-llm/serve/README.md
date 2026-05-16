@@ -8,7 +8,7 @@ Runs `Qwen3-Coder-30B-A3B-Instruct` (MLX 4-bit) on `http://localhost:8000/v1`. S
 ./start.sh
 ```
 
-That's it. Foreground server, Ctrl-C to stop.
+This starts the server in the foreground. Press Ctrl-C to stop it.
 
 ## Run as a background daemon
 
@@ -56,9 +56,9 @@ Add to `~/.config/zed/settings.json`:
 }
 ```
 
-`max_tokens: 65536` is a conservative practical limit for M3 Pro 36 GB (KV cache fills lazily, but you'll feel memory pressure past ~64 K). Raise to `262144` to expose the model's full native context, at the risk of OOM during long sessions.
+`max_tokens: 65536` is a conservative practical limit for M3 Pro 36 GB. The KV cache fills lazily, but memory pressure is expected above approximately 64 K tokens. Raise to `262144` to expose the model's full native context, at the risk of OOM during long sessions.
 
-## docker-compose clients (other services that want to hit the LLM)
+## docker-compose clients requiring access to the LLM
 
 Rapid-MLX runs on the host, not in Docker. Other containers reach it via `host.docker.internal`:
 
@@ -84,4 +84,4 @@ curl -sS http://localhost:8000/v1/chat/completions \
 
 ## Uninstall / replace
 
-If you want to switch engines later (e.g., to llama-server or oMLX), the setup scripts for all four candidates live in [`../benchmark/`](../benchmark/). Each script is self-contained.
+To switch engines later, for example to llama-server or oMLX, use the setup scripts for all four candidates in [`../benchmark/`](../benchmark/). Each script is self-contained.

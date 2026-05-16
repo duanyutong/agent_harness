@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Approach B: Docker Model Runner (llama.cpp backend) — setup script
+# Approach B: Docker Model Runner (llama.cpp backend) - setup script
 #
-# WHAT THIS SCRIPT DOES (idempotent — safe to re-run):
+# WHAT THIS SCRIPT DOES (idempotent; safe to rerun):
 #   1. Verifies Docker + DMR are running.
 #   2. Pulls the Qwen3-Coder GGUF (~17 GB) if not already present.
 #   3. Sets per-model runtime config (context-size, keep-alive).
 #   4. Verifies the OpenAI-compatible API at http://localhost:12434/engines/v1
 #
 # THIS IS NOT A SERVER. The DMR daemon (managed by Docker Desktop) already
-# serves the API on port 12434 the moment Model Runner is enabled. The model
+# serves the API on port 12434 as soon as Model Runner is enabled. The model
 # itself loads into RAM lazily on the first /chat/completions request, and
-# unloads after `keep-alive` of idleness. This script just configures it.
+# unloads after `keep-alive` of idleness. This script only configures it.
 #
 # CONFIG NOTES — context-size and slots:
 #   The Qwen3-Coder-30B-A3B GGUF has aggressive GQA (4 KV heads, 48 layers,
@@ -19,37 +19,38 @@
 #   (`--parallel 1`) and budget a single 96 K-token KV cache (~9 GB), matching
 #   the raw-llama-server bench in Approach C exactly.
 #
-#   `docker model configure` doesn't expose `--parallel` as a first-class flag,
-#   but it does pass arbitrary llama.cpp flags after a `--` delimiter — see
+#   `docker model configure` does not expose `--parallel` as a first-class flag,
+#   but it does pass arbitrary llama.cpp flags after a `--` delimiter; see
 #   https://docs.docker.com/ai/model-runner/configuration/. We use that below.
-#   (Historical note: an earlier llama.cpp bug — ggml-org/llama.cpp#17989,
-#   fixed in PR #17997 — made `--parallel 1` silently initialize 4 slots.
-#   DMR inherited the bug at the time, which is what made it look like DMR
-#   hardcoded n_slots = 4. Current DMR builds — b9014+ — are past the fix,
-#   so this `--parallel 1` is technically redundant, but explicit is safer.)
+#   (Historical note: an earlier llama.cpp bug, ggml-org/llama.cpp#17989,
+#   fixed in PR #17997, made `--parallel 1` silently initialise 4 slots.
+#   DMR inherited the bug at the time, causing DMR to appear to hardcode
+#   n_slots = 4. Current DMR builds, b9014 and later, include the fix, so this
+#   `--parallel 1` is technically redundant, but explicit configuration remains
+#   preferable.)
 #
 #   Apple's default Metal wired-memory cap is ~75 % of physical RAM
 #   (~27 GB on a 36 GB M3 Pro). Budget:
 #       ~17 GB weights + ~9 GB KV (96 K × 96 KiB) + ~1 GB compute  ≈ 27 GB
-#   That just fits; bumping ctx-size further would need
+#   This fits narrowly; increasing ctx-size further would require
 #   `sudo sysctl iogpu.wired_limit_mb=30720` (30 GB) and is not recommended
 #   without understanding the OS-starvation risk.
 #
-# TO CHANGE CONFIG LATER (no rerun of this script needed):
+# TO CHANGE CONFIG LATER (rerunning this script is not required):
 #   docker model configure --context-size N --keep-alive 30m ${MODEL}
 #   docker model unload ${MODEL}     # forces reload with new config on next request
 #   docker model configure show ${MODEL}    # verify
 #
 # TO SHUT DOWN THE MODEL (frees ~17 GB of RAM; daemon stays up, idle):
 #   docker model unload ai/qwen3-coder:30B-A3B-UD-Q4_K_XL
-#   docker model ps                  # verify nothing loaded
+#   docker model ps                  # verify that no model is loaded
 #
-# TO TURN OFF THE WHOLE DMR DAEMON (rarely needed):
+# TO TURN OFF THE ENTIRE DMR DAEMON (rarely needed):
 #   Docker Desktop → Settings → Beta features → uncheck "Model Runner"
 #   (or quit Docker Desktop).
 #
 # DEBUGGING:
-#   docker model logs                # llama.cpp inference logs (look for OOM,
+#   docker model logs                # llama.cpp inference logs (inspect for OOM,
 #                                      Compute error, GGML_ASSERT, etc.)
 #   docker model status              # backend health
 #   docker model inspect ${MODEL}    # GGUF metadata + architecture
@@ -60,9 +61,9 @@
 set -euo pipefail
 
 PORT=12434
-MODEL="ai/qwen3-coder:30B-A3B-UD-Q4_K_XL"   # GGUF (Unsloth) → llama.cpp backend
+MODEL="ai/qwen3-coder:30B-A3B-UD-Q4_K_XL"   # GGUF (Unsloth) -> llama.cpp backend
 ENDPOINT="http://localhost:${PORT}/engines/v1"
-CONTEXT_SIZE=96000    # 1 slot × 96K × 96 KiB ≈ 9 GB KV cache — matches Approach C
+CONTEXT_SIZE=96000    # 1 slot x 96K x 96 KiB approx. 9 GB KV cache; matches Approach C
 KEEP_ALIVE="30m"
 
 echo "=== Approach B: Docker Model Runner (llama.cpp) ==="
@@ -112,7 +113,7 @@ else
   exit 1
 fi
 echo ""
-echo "Smoke test (first call is slow -- it loads the ~16 GB model into RAM):"
+echo "Smoke test (the first call is slow -- it loads the ~16 GB model into RAM):"
 cat <<EOF
   curl ${ENDPOINT}/chat/completions \\
     -H 'Content-Type: application/json' \\

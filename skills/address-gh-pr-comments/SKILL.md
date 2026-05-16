@@ -14,7 +14,7 @@ Structured workflow: pull comments → create plan → get approval → implemen
 
 1. Get PR details: use a GitHub tool or the `gh pr view` CLI.
    Prefer `--json` / `--jq` for machine-readable output. Do not force `GH_PAGER=cat`
-   by default; current `gh` behavior streams normal PR view and diff output without
+   by default; current `gh` behaviour streams normal PR view and diff output without
    opening a pager. If a command does open a pager or appears stuck in an
    alternate-screen buffer, rerun that command with `GH_PAGER=cat gh ...` rather
    than exporting a global pager override.
@@ -25,7 +25,7 @@ Structured workflow: pull comments → create plan → get approval → implemen
 Plan structure:
 
 - For each thread: check the file/line, context, and reviewer comment; make an assessment; discuss the issue and rationale; propose an action; and draft a reply.
-  - Reply should be concise, clear, and natural-sounding.
+  - Reply should be concise, clear, and natural.
 
 Plan location:
 
@@ -41,10 +41,10 @@ Plan location:
 
 ### Phase 3: Validate
 
-Discover and run the repo's lint/test setup:
+Discover and run the repository lint and test configuration:
 
-- Check for config files (Makefile, .pre-commit-config.yaml, pyproject.toml, package.json, etc.).
-- Run lint/test commands the repo uses (may limit to only the affected files if appropriate).
+- Check for configuration files, such as Makefile, `.pre-commit-config.yaml`, `pyproject.toml`, and `package.json`.
+- Run the lint and test commands used by the repository; limit them to affected files when appropriate.
 - Loop: fix failures → re-run until passing.
 - Review the final diff before committing.
 
@@ -78,7 +78,7 @@ Discover and run the repo's lint/test setup:
    - When batching GraphQL replies, inspect the response for per-mutation errors and
      retry only the failed replies. Do not resolve reviewer threads.
    - If posting many mutating requests individually, keep them serial and pause
-     between requests. On `403`/`429` rate-limit responses, honor `retry-after` or
+     between requests. On `403`/`429` rate-limit responses, honour `retry-after` or
      `x-ratelimit-reset`; otherwise back off before retrying.
 
 2. Update the PR description if the scope changed, using the CLI: `gh pr edit <PR> --body "<updated>"`
@@ -86,7 +86,7 @@ Discover and run the repo's lint/test setup:
 Never resolve reviewer threads.
 Leave that to the reviewer who posted the comment.
 
-### Phase 6: Cleanup
+### Phase 6: Clean-Up
 
 Provide the user with a summary:
 

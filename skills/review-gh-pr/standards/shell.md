@@ -130,7 +130,7 @@ total=$((total++))         # increment operators not POSIX
 
 ### Output
 
-Use `printf` instead of `echo` for portability. `echo` behavior varies between shells.
+Use `printf` instead of `echo` for portability. `echo` behaviour varies between shells.
 
 ```sh
 # Preferred: portable and predictable
@@ -355,7 +355,7 @@ main() {
 main "$@"
 ```
 
-### Trap for Cleanup
+### Trap for Clean-Up
 
 ```sh
 cleanup() {
@@ -373,7 +373,7 @@ main() {
 
 ### Script Directory
 
-Determine the directory containing the script (works in most shells):
+Determine the directory containing the script; this form is compatible with most shells:
 
 ```sh
 script_dir="$(cd "$(dirname "$0")" && pwd)"
@@ -399,7 +399,7 @@ ShellCheck catches:
 - Unquoted variables (SC2086)
 - Bashisms in sh scripts (SC2039, SC3000+)
 - Undefined variables
-- Common pitfalls
+- Common errors
 
 ### Disabling Checks, Rarely
 
@@ -428,7 +428,7 @@ eval "$command_string"
 Aliases only work in interactive shells:
 
 ```sh
-# Not effective in scripts
+# Ineffective in scripts
 alias ll='ls -la'
 ll /tmp
 

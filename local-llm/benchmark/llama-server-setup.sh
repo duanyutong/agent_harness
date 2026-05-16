@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Approach C: Raw `llama-server` (llama.cpp at full power) — setup script
+# Approach C: Raw `llama-server` (llama.cpp with direct runtime control) - setup script
 #
 # WHAT THIS SCRIPT DOES (idempotent):
 #   1. Installs llama.cpp via Homebrew if not present (`brew install llama.cpp`).
 #   2. Locates a Qwen3-Coder GGUF on disk. Tries in order:
 #      a. ~/models/qwen3-coder/Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf
 #      b. The DMR-cached file in ~/.docker/models/bundles/<sha>/model/model.gguf
-#         (if you ran dmr-setup.sh first and didn't delete the model).
+#         (if dmr-setup.sh has been run and the model has not been deleted).
 #   3. Launches llama-server in the foreground on port 18080.
 #
-# THIS IS A SERVER — Ctrl-C kills it. There is no daemon. No `keep-alive`.
-# Killing the process fully unloads the model (frees ~17 GB of RAM).
+# THIS IS A SERVER: Ctrl-C terminates it. There is no daemon and no
+# `keep-alive`. Terminating the process fully unloads the model (freeing
+# approximately 17 GB of RAM).
 #
 # CONFIG NOTES — context-size and parallel:
 #   Qwen3-Coder-30B-A3B GGUF has aggressive GQA (4 KV heads, 48 layers,
@@ -23,15 +24,15 @@
 #     ≈ 26 GB total → fits within Apple's ~27 GB Metal wired-memory cap on
 #     M3 Pro 36 GB, with ~1 GB margin.
 #
-#   This is the comparison point for Approach B (DMR), which is forced to
-#   4 slots × 24 K context due to a missing CLI knob. Same engine, same
-#   GGUF, completely different runtime config.
+#   This is the comparison point for Approach B (DMR): the same llama.cpp
+#   engine and the same GGUF, but with direct control over the `llama-server`
+#   runtime flags.
 #
 # TO CHANGE CONFIG:
 #   Edit CONTEXT_SIZE / PORT below and re-run.
 #
 # TO SHUT DOWN:
-#   Ctrl-C in this terminal. That's it.
+#   Ctrl-C in this terminal.
 #
 # DEBUGGING:
 #   curl http://localhost:18080/health        # liveness
@@ -47,7 +48,7 @@ CONTEXT_SIZE=96000
 HOST=127.0.0.1
 DMR_MODEL_TAG="ai/qwen3-coder:30B-A3B-UD-Q4_K_XL"
 
-echo "=== Approach C: Raw llama-server (llama.cpp at full power) ==="
+echo "=== Approach C: Raw llama-server (llama.cpp with direct runtime control) ==="
 echo ""
 
 # ---- 1. Install llama.cpp ---------------------------------------------------
@@ -72,7 +73,7 @@ if [ -f "$MANUAL_PATH" ]; then
 fi
 
 # Fall back to DMR-cached bundle.
-# Wrap in `|| true` so a missing model / failed pipeline doesn't trip set -e.
+# Permit a missing model or failed pipeline without triggering set -e.
 if [ -z "$GGUF_PATH" ] && command -v docker &>/dev/null; then
   DMR_HASH=$(
     {

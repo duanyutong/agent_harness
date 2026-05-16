@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Approach D: oMLX (MLX engine + SSD-backed KV cache) — setup script
+# Approach D: oMLX (MLX engine + SSD-backed KV cache) - setup script
 #
 # WHAT THIS SCRIPT DOES (idempotent):
 #   1. Installs oMLX via Homebrew tap (`jundot/omlx`).
@@ -9,17 +9,17 @@
 #      (skipped if already present).
 #   3. Launches `omlx serve` in the foreground on port 8001.
 #
-# WHY 8001 (not 8000): Rapid-MLX (Approach A) defaults to 8000. We pick a
-# non-conflicting port so a half-configured Rapid-MLX env doesn't clash, and
-# so Zed configs for both can coexist.
+# WHY 8001 (not 8000): Rapid-MLX (Approach A) defaults to 8000. We select a
+# non-conflicting port so a partly configured Rapid-MLX environment does not
+# conflict, and so Zed configurations for both can coexist.
 #
 # WHY oMLX EXISTS IN THIS BENCH (and not just A):
 #   oMLX wraps the same MLX runtime as Rapid-MLX but adds a two-tier KV cache:
 #   RAM hot tier + SSD cold tier (persisted as safetensors). For agent
-#   workflows where a multi-K-token system prompt + tool defs + open-file
-#   context get re-sent every turn, this drops cached TTFT from 30-90 s to
-#   1-3 s. Raw decode tok/s is expected to be in Rapid-MLX's ballpark; the
-#   SSD cache is the differentiator. Run the prefix-replay test to actually
+#   workflows where a multi-K-token system prompt, tool definitions, and
+#   open-file context are resent every turn, this reduces cached TTFT from
+#   30-90 s to 1-3 s. Raw decode tok/s is expected to be in Rapid-MLX's range;
+#   the SSD cache is the differentiator. Run the prefix-replay test to
 #   exercise it: `./bench.sh --prefix-replay --endpoint http://localhost:8001/v1`.
 #
 # CONFIG NOTES:
@@ -28,8 +28,8 @@
 #   - The model name in API calls = the directory name on disk.
 #
 # TO CHANGE THE MODEL:
-#   Drop another MLX-format model directory under MODEL_DIR. oMLX picks up
-#   whatever subdirectories it finds. List with: `omlx list` (or via the
+#   Place another MLX-format model directory under MODEL_DIR. oMLX serves the
+#   subdirectories it finds. List them with: `omlx list` (or via the
 #   admin dashboard at http://localhost:${PORT}/admin).
 #
 # TO SHUT DOWN:
@@ -67,8 +67,8 @@ echo "[1/4] Checking oMLX..."
 if command -v omlx &>/dev/null; then
   echo "  Already installed and linked: $(omlx --version 2>&1 | head -1 || echo 'version unknown')"
 else
-  # If brew has it but it's not linked (common after a prior install bailed
-  # mid-build, or with parallel brew runs), link it. Else do a full install.
+  # If brew has it but it is not linked (common after a prior install stopped
+  # mid-build, or with parallel brew runs), link it. Otherwise, install it.
   if brew list --formula --full-name 2>/dev/null | grep -q '^jundot/omlx/omlx$'; then
     echo "  Found installed but unlinked. Running brew link..."
     brew link --overwrite jundot/omlx/omlx

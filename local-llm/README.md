@@ -1,8 +1,8 @@
-# Local LLM Setup for M3 Pro (Bleeding Edge, May 2026)
+# Local LLM Setup for M3 Pro (Current Experimental Configuration, May 2026)
 
-## Result (decided 2026-05-11): Rapid-MLX wins
+## Result (decided 2026-05-11): Rapid-MLX is selected
 
-After head-to-head benchmarking on the actual hardware, **Rapid-MLX** is the daily-driver choice for this setup. Summary numbers (Qwen3-Coder-30B-A3B-Instruct, M3 Pro 36 GB, 5 trials × 1000 max-tokens):
+After head-to-head benchmarking on the target hardware, **Rapid-MLX** is the preferred routine-use option for this setup. Summary numbers (Qwen3-Coder-30B-A3B-Instruct, M3 Pro 36 GB, 5 trials × 1000 max-tokens):
 
 | Engine           | Decode tok/s | Cold TTFT (s) | Warm TTFT (s)                | RSS working set (MB) | Cache type                   |
 | ---------------- | ------------ | ------------- | ---------------------------- | -------------------- | ---------------------------- |
@@ -10,48 +10,48 @@ After head-to-head benchmarking on the actual hardware, **Rapid-MLX** is the dai
 | llama-server     | 46.6         | 16.24         | **0.70** (immediate)         | 25,809               | RAM prompt cache (8 GB ring) |
 | oMLX             | 50.4         | 11.87         | 1.32 (**after 3 cold runs**) | 2,876                | RAM + SSD 2-tier             |
 
-**Why Rapid-MLX:** highest decode, lowest RSS, instant warm-cache hit, simplest install. llama-server is faster on warm TTFT but burns 26 GB of RAM pre-allocating its 96 K KV cache — not worth it unless you actively use that much context per turn. oMLX is genuinely interesting (the SSD tier survives restarts) but has a bizarre 3-cold-run warm-up policy that costs you the first few minutes of every fresh-prefix session, plus the slowest warm TTFT of the three.
+**Why Rapid-MLX:** highest decode, lowest RSS, instant warm-cache hit, simplest installation. llama-server is faster on warm TTFT but allocates approximately 26 GB of RAM while pre-allocating its 96 K KV cache; that cost is not justified unless that much context is actively used per turn. oMLX is technically interesting because the SSD tier survives restarts, but it has an unusual three-cold-run warm-up policy that imposes the first few minutes of cost on every fresh-prefix session, plus the slowest warm TTFT of the three.
 
-See **Benchmark methodology and results** below for the full data. Daily-use scripts live in `serve/`; full bench in `benchmark/`.
+See **Benchmark methodology and results** below for the full data. Daily-use scripts live in `serve/`; the complete benchmark lives in `benchmark/`.
 
 ---
 
 ## Context
 
-User has: **MacBook Pro M3 with 36GB unified RAM**, prefers **docker-compose** for everything else in dev workflow.
+Target hardware: **MacBook Pro M3 with 36GB unified RAM**. The surrounding development workflow prefers **docker-compose**.
 
-Goal: Run the best quality-performance coding model locally with extreme optimization (DS4-style philosophy generalized). User prefers bleeding-edge tools over conservative defaults.
+Goal: run the best quality-performance coding model locally with aggressive optimisation, following the DS4-style philosophy in generalised form. The preferred toolchain favours experimental tools over conservative defaults.
 
 ---
 
 ## Decision: Benchmark Three Candidates Head-to-Head
 
-Public data is insufficient to pick a winner. We install three approaches and benchmark them on this machine with the same model family and prompts. The three-way structure separates two questions: _engine choice_ (MLX vs llama.cpp) and _SSD-backed KV caching for repeated prefixes_.
+Public data is insufficient to determine a preferred option. We install three approaches and benchmark them on this machine with the same model family and prompts. The three-way structure separates two questions: _engine choice_ (MLX vs llama.cpp) and _SSD-backed KV caching for repeated prefixes_.
 
-DMR (Docker Model Runner) was considered and **explicitly excluded** — see "Background: Why Other Options Were Rejected" for the full reasoning. Short version: DMR hard-wires llama.cpp to 4 concurrent slots with no CLI knob to disable it, which on 36 GB Apple Silicon forces a ~75 % tax on the KV-cache budget. Approach C runs the same llama.cpp engine on the same GGUF without that tax, and is the strictly-better way to evaluate llama.cpp on this hardware.
+DMR (Docker Model Runner) was considered and **explicitly excluded**; see "Background: Why Other Options Were Rejected" for the full reasoning. In brief, DMR configures llama.cpp with 4 concurrent slots and no first-class CLI option to disable that setting, which on 36 GB Apple Silicon imposes an approximately 75% reduction in the usable per-slot KV-cache budget. Approach C runs the same llama.cpp engine on the same GGUF without that reduction and is the stronger way to evaluate llama.cpp on this hardware.
 
 ### What we're actually comparing
 
-| Engine                              | Approach                       | Model format                    | Backend                         | Differentiator                                           |
-| ----------------------------------- | ------------------------------ | ------------------------------- | ------------------------------- | -------------------------------------------------------- |
-| **Rapid-MLX** (Approach A)          | Native Metal, host-side daemon | MLX 4-bit                       | MLX runtime                     | Mature MLX wrapper, tool-call parsers per model          |
-| **Raw `llama-server`** (Approach C) | Native Metal, host-side daemon | GGUF Q4_K_XL (Unsloth)          | llama.cpp                       | llama.cpp at full power: `--parallel 1 --ctx-size 96000` |
-| **oMLX** (Approach D)               | Native Metal, host-side daemon | MLX 4-bit (_same weights as A_) | MLX runtime + two-tier KV cache | SSD-backed KV cache → cached TTFT 1-3 s vs 30-90 s       |
+| Engine                              | Approach                       | Model format                    | Backend                         | Differentiator                                                             |
+| ----------------------------------- | ------------------------------ | ------------------------------- | ------------------------------- | -------------------------------------------------------------------------- |
+| **Rapid-MLX** (Approach A)          | Native Metal, host-side daemon | MLX 4-bit                       | MLX runtime                     | Mature MLX wrapper, tool-call parsers per model                            |
+| **Raw `llama-server`** (Approach C) | Native Metal, host-side daemon | GGUF Q4_K_XL (Unsloth)          | llama.cpp                       | llama.cpp with full configuration control: `--parallel 1 --ctx-size 96000` |
+| **oMLX** (Approach D)               | Native Metal, host-side daemon | MLX 4-bit (_same weights as A_) | MLX runtime + two-tier KV cache | SSD-backed KV cache → cached TTFT 1-3 s vs 30-90 s                         |
 
 ### Why these three approaches
 
-Independent benchmarking ([famstack.dev](https://famstack.dev/guides/mlx-vs-gguf-part-2-isolating-variables/)) shows that on Qwen3 30B-A3B, MLX and llama.cpp essentially tie on raw decode (~55-58 tok/s). The "MLX is 3-4× faster" marketing is mostly comparing against Ollama's slow wrapper, not raw llama.cpp. The genuinely different optimization vector is **cached TTFT for repeated prompt prefixes** — exactly what coding agents pay all the time on every turn. That's where Approach D (oMLX) earns its slot.
+Independent benchmarking ([famstack.dev](https://famstack.dev/guides/mlx-vs-gguf-part-2-isolating-variables/)) shows that on Qwen3 30B-A3B, MLX and llama.cpp essentially tie on raw decode (~55-58 tok/s). The "MLX is 3-4× faster" marketing claims primarily compare against Ollama's slower wrapper, not raw llama.cpp. The genuinely different optimisation vector is **cached TTFT for repeated prompt prefixes**, which is exactly what coding agents pay on every turn. That is where Approach D (oMLX) earns its slot.
 
-The three-way bench separates two questions:
+The three-way benchmark separates two questions:
 
 | Comparison                       | Tells us                                                                                                                               |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | A vs C                           | Is the **MLX runtime** materially faster than llama.cpp on raw decode for this model? (Likely a tie on this model — see famstack.dev.) |
-| A vs D (or A with prefix replay) | Is **SSD-backed KV caching** for repeated prefixes a game-changer for agent workflows?                                                 |
+| A vs D (or A with prefix replay) | Is **SSD-backed KV caching** for repeated prefixes a material improvement for agent workflows?                                         |
 
-If A ≈ D on raw decode, A is redundant — D supersedes it. Keep A only if you specifically want a baseline for "MLX without the SSD cache"; for picking a winner, D alone covers the MLX side. (A also has Rapid-MLX's tool-call parsers, which the bench doesn't measure but you may care about.)
+If A ≈ D on raw decode, A is redundant because D supersedes it. Keep A only if a baseline for "MLX without the SSD cache" is specifically required; for selecting an engine, D alone covers the MLX side. A also has Rapid-MLX's tool-call parsers, which the benchmark does not measure but may still matter.
 
-### Why no clear public winner
+### Why No Clear Public Selection Exists
 
 | Engine                            | Public single-user benchmark on Qwen3-Coder-30B-A3B                  |
 | --------------------------------- | -------------------------------------------------------------------- |
@@ -72,7 +72,7 @@ If A ≈ D on raw decode, A is redundant — D supersedes it. Keep A only if you
 
 ### Trade-offs accepted
 
-- **Bleeding edge risk**: All three engines launched in 2026 and are pre-v1.0
+- **Experimental-tooling risk**: All three engines launched in 2026 and are pre-v1.0
 - **Local quality cap**: Still meaningfully worse than Claude Sonnet / GPT-5 for complex multi-step agentic flows
 - **Setup before benchmark**: We install all three before deciding
 - **Quantization mismatch**: A's MLX 4-bit and B/C's GGUF Q4_K_XL are different quantization schemes of the same base weights. Q4_K_XL ("Ultra-Dynamic" Unsloth quant) is generally a few % higher quality than vanilla 4-bit; treat A vs B/C as engine-and-quant comparisons, not pure engine comparisons
@@ -97,7 +97,7 @@ Alternates: `pip install rapid-mlx` (Python 3.10+) or `curl -fsSL https://raulle
 
 ### A.2 — Serve the model
 
-> **Alias trap — verify before running.** Rapid-MLX exposes two confusingly-named aliases for Qwen3-Coder:
+> **Alias ambiguity: verify before execution.** Rapid-MLX exposes two confusingly named aliases for Qwen3-Coder:
 >
 > - `qwen3-coder` → `lmstudio-community/Qwen3-Coder-Next-MLX-4bit` — a _different, much larger_ MoE model (~40 GB on disk).
 > - `qwen3-coder-30b` → `mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit` — the 30B model that matches DMR's GGUF (~17 GB on disk).
@@ -171,7 +171,7 @@ services:
 
 ## Approach C: Raw `llama-server`
 
-**Design**: Run llama.cpp's reference HTTP server directly on the host with `--parallel 1 --ctx-size 96000`. This is llama.cpp at full power on this hardware — one slot, the entire ~9 GB KV-cache budget, 96 K usable context per turn. (Compare DMR, which forces 4 slots × 24 K — see "Background: Why Other Options Were Rejected".)
+**Design**: Run llama.cpp's reference HTTP server directly on the host with `--parallel 1 --ctx-size 96000`. This gives llama.cpp full available configuration control on this hardware: one slot, the entire ~9 GB KV-cache budget, and 96 K usable context per turn. Compare DMR, which forces 4 slots × 24 K; see "Background: Why Other Options Were Rejected".
 
 ### C.1 — Install llama.cpp
 
@@ -196,7 +196,7 @@ hf download unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF \
   --local-dir ~/models/qwen3-coder
 ```
 
-(If you already have the file in DMR's cache from prior experimentation, the setup script will pick it up there and skip the download.)
+If the file already exists in DMR's cache from prior experimentation, the setup script will detect it there and skip the download.
 
 ### C.3 — Run the server
 
@@ -215,9 +215,9 @@ Flag rationale:
 
 - `--parallel 1`: single slot, all KV budget goes to one stream
 - `--ctx-size 96000`: ~96 K tokens × 96 KiB ≈ 9 GB KV cache (the entire budget for one slot — vs DMR's 4-way split that gives only 24 K per slot, see Background)
-- `--n-gpu-layers 999`: explicit "everything on Metal"; the default does this anyway on Apple Silicon but no harm being explicit
+- `--n-gpu-layers 999`: explicit "everything on Metal"; the default does this on Apple Silicon, but explicit configuration is preferable for reproducibility
 - `--metrics`: exposes Prometheus-style metrics at `/metrics` for benchmarking
-- `--host 127.0.0.1`: bind to loopback only (don't expose to LAN)
+- `--host 127.0.0.1`: bind to loopback only; do not expose the service to the LAN
 - `--port 18080`: avoids conflicts with Rapid-MLX (8000) and oMLX (8001)
 
 Server runs in the foreground. Endpoint: `http://localhost:18080/v1` (OpenAI-compatible).
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:18080/v1/chat/completions" \
   }'
 ```
 
-`llama-server` accepts any value for `model` — it serves whatever GGUF was loaded on the command line.
+`llama-server` accepts any value for `model`; it serves the GGUF loaded on the command line.
 
 ### C.4 — docker-compose clients
 
@@ -295,7 +295,7 @@ Reuses the same MLX 4-bit weights Rapid-MLX downloads (`mlx-community/Qwen3-Code
 omlx serve --model-dir ~/models --port 8001
 ```
 
-Port 8001 to avoid colliding with Rapid-MLX (8000) if both are configured. oMLX picks the model up by directory name. To run as a persistent background daemon instead:
+Port 8001 avoids colliding with Rapid-MLX (8000) if both are configured. oMLX identifies the model by directory name. To run as a persistent background daemon instead:
 
 ```bash
 brew services start omlx
@@ -320,7 +320,7 @@ The model name is the directory name under `--model-dir`.
 
 ### D.4 — How to actually benchmark D's value
 
-The standard `bench.sh` decode/TTFT numbers will _not_ show D's advantage — they measure cold/warm runs of distinct prompts. D's KV cache pays off when the _same prompt prefix_ is replayed across turns. Add a dedicated test:
+The standard `bench.sh` decode/TTFT numbers will _not_ show D's advantage because they measure cold/warm runs of distinct prompts. D's KV cache pays off when the _same prompt prefix_ is replayed across turns. Add a dedicated test:
 
 ```text
 1. Send a 3K-token system prompt + tool defs + 4K-token user message → measure TTFT (this is "cold" for D's SSD cache).
@@ -329,7 +329,7 @@ The standard `bench.sh` decode/TTFT numbers will _not_ show D's advantage — th
 4. Repeat (3) 5 times with varying tail content.
 ```
 
-Expect D's runs 2-6 to drop dramatically vs A on the same prompt prefix. If they don't, the SSD cache isn't kicking in or your workload doesn't benefit from it.
+Expect D's runs 2-6 to drop dramatically vs A on the same prompt prefix. If they do not, the SSD cache is not being applied or the workload does not benefit from it.
 
 ### D.5 — docker-compose clients
 
@@ -354,7 +354,7 @@ The SSD cache grows with prompt-prefix variety. oMLX defaults are sane (LRU evic
 
 ## Benchmark Methodology (Run After All Three Approaches Installed)
 
-**Goal**: Pick the winner using _our_ hardware and _our_ workload, not vendor self-reports.
+**Goal**: select the engine using _our_ hardware and _our_ workload, not vendor self-reports.
 
 ### Setup
 
@@ -363,7 +363,7 @@ The SSD cache grows with prompt-prefix variety. oMLX defaults are sane (LRU evic
 - Cold cache before each run (kill/unload+reload between runs)
 - Warm GPU (one throwaway request to discard cold-start overhead)
 - Power: plugged in, "High Performance" energy mode, lid open
-- Background: close other heavy apps (Chrome with 50 tabs, Slack, Zoom etc.)
+- Background: close other heavy applications, such as Chrome with many tabs, Slack, and Zoom
 
 ### Metrics to collect
 
@@ -396,29 +396,29 @@ time curl -sN -X POST "$ENDPOINT/chat/completions" \
 # Parse tokens from streaming response, divide by wall time
 ```
 
-Run 3 trials each, take median. Also test with [linusvwe/MLXBench](https://github.com/linusvwe/MLXBench) if it gains Rapid-MLX support (currently covers Ollama / vllm-mlx / DMR).
+Run three trials for each engine and use the median result. Also test with [linusvwe/MLXBench](https://github.com/linusvwe/MLXBench) if it gains Rapid-MLX support; it currently covers Ollama, vllm-mlx, and DMR.
 
 ### Decision criteria (3-way)
 
-Apply in order — the first matching rule decides the winner.
+Apply these rules in order; the first matching rule determines the selected engine.
 
 1. **Cached-TTFT question (D's specific value prop).** Run the prefix-replay test (section D.4) on D, then on C and (optionally) A.
    - If D's cached TTFT is <5 s and the others are >15 s, **Approach D wins** — for an agent workflow, that gap dominates everything else.
    - If everyone has comparable cached TTFT, fall through to (2).
 2. **Engine question.** Compare the best MLX score (max of A, D) vs C on decode tok/s.
-   - If MLX wins by >20 %, the MLX-side winner from (1) takes it.
+   - If MLX wins by >20 %, select the MLX-side engine from (1).
    - If llama.cpp (C) wins by >20 %, **Approach C wins.**
    - Otherwise, both engines are competitive; fall through to (3).
 3. **Tie-breakers, applied in order:**
-   - Tool-call reliability: pick the one with fewer parse failures
-   - Cold TTFT: pick the lower one
-   - RSS at idle: pick the smaller one if everything else is equal
+   - Tool-call reliability: select the engine with fewer parse failures
+   - Cold TTFT: select the lower value
+   - RSS at idle: select the smaller value if all other criteria are equal
 
 ### Recorded results (Mon 2026-05-11, M3 Pro 36 GB)
 
 Model: Qwen3-Coder-30B-A3B-Instruct (MLX 4-bit for A and D, GGUF Q4_K_XL Unsloth for C — same base weights). 5 decode trials × 1000 max-tokens, 5 TTFT trials, 10 tool-call trials.
 
-**Standard bench:**
+**Standard benchmark:**
 
 | Metric                 | Rapid-MLX | llama-server | oMLX  |
 | ---------------------- | --------- | ------------ | ----- |
@@ -444,9 +444,9 @@ _\* oMLX's average is inflated because trials 1-2 stayed cold. After the cache e
 1. **All three engines have effective prefix caching.** The "oMLX is uniquely good at this" framing was wrong. llama.cpp's RAM prompt cache (8 GB ring buffer per PR 16391) and Rapid-MLX's RAM prompt cache both hit instantly on trial 1.
 2. **oMLX has a 3-cold-run warm-up policy.** Trials 0, 1, 2 all paid full ~12 s prefill cost; only trial 3 saw the cache. Most likely cause is a block-level write-threshold heuristic (the startup logs show `block_size=256 tokens, max_blocks=100000` paged-SSD cache — likely promotes blocks to SSD only after N hits to avoid SSD write amplification). The effect on real-world use: you pay the cold-prefill cost not just on session 1 but for ~3 sessions of every new prefix.
 3. **llama-server has the lowest warm TTFT** (0.70 s) but loses on RSS.
-4. **oMLX's SSD durability is real** (we saw 26 cache files survive an oMLX restart between runs) but this benchmark didn't exercise it — 30 s of idle doesn't evict the RAM caches in any of the three engines. SSD persistence only matters across restarts or under heavy memory pressure, neither of which a "load it once, use it all day" desktop hits.
+4. **oMLX's SSD durability is real** (we saw 26 cache files survive an oMLX restart between runs), but this benchmark did not exercise it. Thirty seconds of idle time does not evict the RAM caches in any of the three engines. SSD persistence only matters across restarts or under heavy memory pressure, neither of which applies to a "load it once, use it all day" desktop workflow.
 
-**Decision:** Rapid-MLX wins on the all-around criteria (highest decode + lowest RSS + instant cache + simplest setup). llama-server is the second choice if you need >32 K of _actively used_ context per turn. oMLX is fine technology but its caching policy is a poor fit for short-session iteration.
+**Decision:** Rapid-MLX wins on the overall criteria: highest decode, lowest RSS, instant cache, and simplest setup. llama-server is the second choice if more than 32 K of _actively used_ context is required per turn. oMLX is technically viable, but its caching policy is a poor fit for short-session iteration.
 
 ---
 
@@ -456,16 +456,16 @@ _\* oMLX's average is inflated because trials 1-2 stayed cold. After the cache e
 
 DMR runs llama.cpp as a Docker-managed host-side daemon, with an OpenAI-compatible API on `http://localhost:12434/engines/v1`. Strictly inferior to Approach C (raw `llama-server`) for solo dev on Apple Silicon, for the following reasons:
 
-1. **`n_slots = 4` was an upstream llama.cpp bug, fixed before our bench ran.** Initial investigation here concluded DMR hardcoded `n_slots = 4` because `docker model configure --help` doesn't expose a `--parallel`/`--n-slots` knob (only `--context-size`, `--keep-alive`, `--mode`, plus sampling/threading/GPU flags — see [Configuration options](https://docs.docker.com/ai/model-runner/configuration/)). That was the wrong diagnosis. The actual root cause is [llama.cpp #17989](https://github.com/ggml-org/llama.cpp/issues/17989) (opened 2025-12-13, closed via [PR #17997](https://github.com/ggml-org/llama.cpp/pull/17997)): llama-server itself initialized 4 slots even when `--parallel 1` was passed, contradicting its own docs. Both engines we tested are well past the fix — Homebrew `llama.cpp` is build b9090, DMR was bumped to b9102 on 2026-05-11 (DMR's recent cadence is weekly bumps from `ghcr.io/ggml-org/llama.cpp` images). So this bug is not currently a reason to prefer one over the other.
-2. **DMR still doesn't expose `--parallel` in `docker model configure`**, but the escape hatch is `runtime_flags: ["--parallel", "1"]` in compose ([DMR #108](https://github.com/docker/model-runner/issues/108) shows a user passing it through; logs confirm the flag reaches the llama-server invocation). On Linux this is flaky per [DMR #726](https://github.com/docker/model-runner/issues/726). The practical friction: any unusual llama.cpp flag means dropping into `runtime_flags:` rather than a first-class CLI argument.
-3. **Default `--context-size = 128 K` is unsafe on this hardware.** Empirically, out of the box DMR allocates enough KV cache to exceed Apple's ~27 GB Metal wired-memory cap. Every request 500s with `kIOGPUCommandBufferCallbackErrorOutOfMemory` (visible in `docker model logs`) until you run `docker model configure --context-size 24576`. (The previous version of this section attributed this to `4 × context-size` multiplication; with `kv_unified = true` that math is probably wrong — single 128 K × 96 KiB ≈ 12 GB KV plus the ~17 GB weights plus Metal overhead is itself enough to cross the cap. Either way, the OOM is real.)
-4. **DMR's `vllm` backend doesn't apply here.** vLLM in DMR requires safetensors/MLX-format models. Docker Hub publishes Qwen3-Coder only as GGUF, which DMR routes to llama.cpp. The original "DMR + vllm-metal" pitch isn't available for this model.
+1. **`n_slots = 4` was an upstream llama.cpp bug, fixed before our benchmark ran.** Initial investigation here concluded DMR hardcoded `n_slots = 4` because `docker model configure --help` does not expose a `--parallel`/`--n-slots` option (only `--context-size`, `--keep-alive`, `--mode`, plus sampling/threading/GPU flags; see [Configuration options](https://docs.docker.com/ai/model-runner/configuration/)). That diagnosis was incorrect. The actual root cause is [llama.cpp #17989](https://github.com/ggml-org/llama.cpp/issues/17989) (opened 2025-12-13, closed via [PR #17997](https://github.com/ggml-org/llama.cpp/pull/17997)): llama-server itself initialised 4 slots even when `--parallel 1` was passed, contradicting its own docs. Both engines we tested are well past the fix: Homebrew `llama.cpp` is build b9090, and DMR was bumped to b9102 on 2026-05-11. DMR's recent cadence is weekly bumps from `ghcr.io/ggml-org/llama.cpp` images. This bug is therefore not currently a reason to prefer one engine over the other.
+2. **DMR still does not expose `--parallel` in `docker model configure`**, but the available workaround is `runtime_flags: ["--parallel", "1"]` in compose ([DMR #108](https://github.com/docker/model-runner/issues/108) shows a user passing it through; logs confirm the flag reaches the llama-server invocation). On Linux this is unreliable per [DMR #726](https://github.com/docker/model-runner/issues/726). The practical friction is that any unusual llama.cpp flag requires `runtime_flags:` rather than a first-class CLI argument.
+3. **Default `--context-size = 128 K` is unsafe on this hardware.** Empirically, the default DMR configuration allocates enough KV cache to exceed Apple's ~27 GB Metal wired-memory cap. Every request returns a 500 with `kIOGPUCommandBufferCallbackErrorOutOfMemory`, visible in `docker model logs`, until `docker model configure --context-size 24576` is run. The prior version of this section attributed this to `4 × context-size` multiplication; with `kv_unified = true`, that calculation is likely incorrect. A single 128 K × 96 KiB allocation is approximately 12 GB of KV cache, and the ~17 GB weights plus Metal overhead are themselves sufficient to cross the cap. In either case, the OOM is real.
+4. **DMR's `vllm` backend does not apply here.** vLLM in DMR requires safetensors/MLX-format models. Docker Hub publishes Qwen3-Coder only as GGUF, which DMR routes to llama.cpp. The original "DMR + vllm-metal" option is not available for this model.
 
-**Why our bench didn't hit the slot bug:** both engines are post-fix builds (Homebrew b9090, DMR b9014 at bench time, b9102 same-day). Additionally, the bench is single-user — even with the pre-fix behavior (`n_parallel = 4` cosmetic + `kv_unified = true`), the working-set RSS would look the same because the 4 slots share one KV pool. The bug primarily affects multi-concurrent-request throughput, not single-stream benchmarks. Either way, llama-server's startup banner (which would have shown `n_slots = N`) isn't captured in our bench logs — we'd only have known by logging stderr.
+**Why our benchmark did not hit the slot bug:** both engines are post-fix builds (Homebrew b9090, DMR b9014 at benchmark time, b9102 same-day). Additionally, the benchmark is single-user; even with the pre-fix behaviour (`n_parallel = 4` cosmetic + `kv_unified = true`), the working-set RSS would look the same because the 4 slots share one KV pool. The bug primarily affects multi-concurrent-request throughput, not single-stream benchmarks. In any case, llama-server's startup banner, which would have shown `n_slots = N`, is not captured in our benchmark logs; we would have known only by logging stderr.
 
-The remaining argument for DMR — `model-runner.docker.internal` DNS for sibling docker-compose services — only matters if you have other containers that need to hit the LLM. For a solo dev setup, Approach C still wins on configuration ergonomics (any llama.cpp flag is just a CLI argument, not a `runtime_flags:` array) and absence of the Docker Desktop daemon, but the gap is smaller than the original "hardcoded 4 slots" framing suggested.
+The remaining argument for DMR, `model-runner.docker.internal` DNS for sibling docker-compose services, only matters if other containers need access to the LLM. For a solo development setup, Approach C still wins on configuration ergonomics (any llama.cpp flag is a CLI argument rather than a `runtime_flags:` array) and absence of the Docker Desktop daemon, but the gap is smaller than the original "hardcoded 4 slots" framing suggested.
 
-(`dmr-setup.sh` and `bench.sh --only-dmr` remain in the repo for anyone who does want to compare — they're just not part of the recommended bench.)
+(`dmr-setup.sh` and `bench.sh --only-dmr` remain in the repository for anyone who wants to compare; they are not part of the recommended benchmark.)
 
 ### DS4 (antirez's DeepSeek V4 Flash engine)
 
@@ -477,7 +477,7 @@ Smaller, would fit easily. **Rejected**: Tool calling unreliable; lacks reliable
 
 ### Devstral Small 2 (24B)
 
-Strong agentic coder, 68% SWE-bench Verified, Apache 2.0. Solid second fallback if Qwen3-Coder underperforms in our benchmark.
+Strong agentic coder, 68% SWE-bench Verified, Apache 2.0. Solid fallback if Qwen3-Coder underperforms in our benchmark.
 
 ### GPT-OSS 20B
 
@@ -485,7 +485,7 @@ OpenAI's open model, native MXFP4, ~12GB. Decent but loses to Qwen3-Coder on mul
 
 ### Pure MLX-LM server (no Rapid-MLX wrapper)
 
-Works but MLX team explicitly says "not recommended for production" (basic security only). Tool calling support is weaker than Rapid-MLX's specialized parsers.
+Functional, but the MLX team explicitly says "not recommended for production" (basic security only). Tool calling support is weaker than Rapid-MLX's specialised parsers.
 
 ### vllm-mlx (independent project, not what DMR uses)
 
@@ -519,13 +519,13 @@ Critical insight: M3 Max outperforms M4 Pro for token generation because bandwid
 ```text
 agent_hardess/
 ├── README.md           ← this file (decision, methodology, results)
-├── benchmark/          ← scripts and results used to pick the winner
-│   ├── README.md       ← how to reproduce the bench
+├── benchmark/          ← scripts and results used to select the engine
+│   ├── README.md       ← how to reproduce the benchmark
 │   ├── bench.sh
 │   ├── {rapid-mlx,llama-server,omlx,dmr}-setup.sh
 │   └── results/
 │       └── bench-results-*.txt
-└── serve/              ← daily-use launcher for the winner (Rapid-MLX)
+└── serve/              ← daily-use launcher for the selected engine (Rapid-MLX)
     ├── README.md       ← quick start
     ├── start.sh
     └── com.rapid-mlx.server.plist
@@ -533,7 +533,7 @@ agent_hardess/
 
 ## Daily use
 
-The winner is **Rapid-MLX**. See [`serve/README.md`](serve/README.md) for the quick start and instructions for running it as a launchd background daemon.
+The selected engine is **Rapid-MLX**. See [`serve/README.md`](serve/README.md) for the quick start and instructions for running it as a launchd background daemon.
 
 ## Reproducing the benchmark
 
@@ -562,7 +562,7 @@ Past results from the run that produced the decision are in `benchmark/results/`
 - [Docker Model Runner Documentation](https://docs.docker.com/ai/model-runner/)
 - [Docker Model Runner GA Announcement](https://www.docker.com/blog/announcing-docker-model-runner-ga/)
 - [Docker Model Runner Configuration Options](https://docs.docker.com/ai/model-runner/configuration/) — full documented flag list (no `--parallel`/`--n-slots`)
-- [llama.cpp #17989 — `--parallel 1` initializes 4 slots, while docs say default is 1](https://github.com/ggml-org/llama.cpp/issues/17989) — upstream bug, root cause of the "DMR hardcoded n_slots = 4" misdiagnosis
+- [llama.cpp #17989 — `--parallel 1` initialises 4 slots, while docs say default is 1](https://github.com/ggml-org/llama.cpp/issues/17989) — upstream bug, root cause of the "DMR hardcoded n_slots = 4" misdiagnosis
 - [llama.cpp PR #17997 — fix for #17989](https://github.com/ggml-org/llama.cpp/pull/17997)
 - [DMR #108 — Parallel requests against same model](https://github.com/docker/model-runner/issues/108) — confirms `runtime_flags: ["--parallel", N]` reaches the llama-server invocation
 - [DMR #726 — Runtime_flags are ignored on Linux in certain cases](https://github.com/docker/model-runner/issues/726)
