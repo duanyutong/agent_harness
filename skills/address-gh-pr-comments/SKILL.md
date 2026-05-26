@@ -19,12 +19,17 @@ Structured workflow: pull comments → create plan → get approval → implemen
    alternate-screen buffer, rerun that command with `GH_PAGER=cat gh ...` rather
    than exporting a global pager override.
 2. Fetch unresolved threads: filter for `isResolved: false` and threads where the author has not replied yet.
+   Preserve both identifiers needed for later replies:
+   - the review-thread GraphQL node ID, used by `addPullRequestReviewThreadReply`;
+   - the review-comment `databaseId`, used by the REST `in_reply_to` endpoint.
+   - If a GitHub tool does not expose review-thread IDs, use `gh api graphql` during gathering
+     rather than rediscovering threads during the reply phase.
 3. Review the threads and create a plan.
 4. Present the plan file to the user for review and approval before proceeding (format the file path as a link to enable one-click view).
 
 Plan structure:
 
-- For each thread: check the file/line, context, and reviewer comment; make an assessment; discuss the issue and rationale; propose an action; and draft a reply.
+- For each thread: check the file/line, context, reviewer comment, review-thread GraphQL node ID, and review-comment `databaseId`; make an assessment; discuss the issue and rationale; propose an action; and draft a reply.
   - Reply should be concise, clear, and natural.
 
 Plan location:
@@ -70,11 +75,37 @@ Discover and run the repository lint and test configuration:
    - Default to the REST reply endpoint for a small number of replies (roughly 1-5).
      It is explicit, maps directly to review-comment `databaseId` values, and keeps
      retry and failure handling straightforward.
-   - For many independent replies, especially when GraphQL review thread IDs are
-     already available from the gather step, prefer one GraphQL request with aliased
-     `addPullRequestReviewThreadReply` mutations. This reduces HTTP round trips and
-     can be more efficient for secondary request-point rate limits. Content-creation
-     limits still apply, so do not use batching to post large volumes too quickly.
+   - For more than five independent replies, use one GraphQL request with aliased
+     `addPullRequestReviewThreadReply` mutations when review-thread IDs are available
+     from the gather step. This reduces HTTP round trips and can be more efficient for
+     secondary request-point rate limits. Content-creation limits still apply, so do
+     not use batching to post large volumes too quickly.
+   - Do not use multiple agents, background jobs, or parallel shell commands to post
+     review replies concurrently. If batching is not available, post serially and
+     honour rate-limit headers.
+   - Construct batched GraphQL replies as separate aliases in one mutation, e.g.
+
+   ```graphql
+   mutation ($thread0: ID!, $body0: String!, $thread1: ID!, $body1: String!) {
+     reply0: addPullRequestReviewThreadReply(
+       input: { pullRequestReviewThreadId: $thread0, body: $body0 }
+     ) {
+       comment {
+         id
+         url
+       }
+     }
+     reply1: addPullRequestReviewThreadReply(
+       input: { pullRequestReviewThreadId: $thread1, body: $body1 }
+     ) {
+       comment {
+         id
+         url
+       }
+     }
+   }
+   ```
+
    - When batching GraphQL replies, inspect the response for per-mutation errors and
      retry only the failed replies. Do not resolve reviewer threads.
    - If posting many mutating requests individually, keep them serial and pause

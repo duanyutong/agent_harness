@@ -103,7 +103,18 @@ Do not repeat the file content in your response.
 
 #### Writing Review
 
-For guidance on writing review body and comments, see [./standards/code-review.md](./standards/code-review.md).
+For general guidance on writing review body and comments, see [./standards/code-review.md](./standards/code-review.md).
+
+Decision: Only use "Request Changes" if the PR has serious defects and has already been approved by other reviews and could be merged at any minute.
+
+Relationship with CI checks:
+
+- For issues already caught by CI
+  - If they are straightforward with clear remedy to follow, no need to add inline comments for them.
+    Simply mention in the review body that issues X, Y, and Z are captured in CI.
+  - Only add inline comments if they add distinct diagnostic or design value.
+- Do not cite CI being green as the basis for approval in the review body.
+- The review decision may be `Approve` if the blocking CI failure is the only outstanding issue and the PR is otherwise substantively sound.
 
 #### Requirements for the "Existing Review Threads" Section
 
