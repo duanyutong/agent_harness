@@ -1,16 +1,7 @@
-# prek.toml - Pre-commit hooks configuration
-# Uses prek (https://github.com/xxxserxxx/prek) - a fast, Rust-based pre-commit alternative
-# Install: pip install prek  OR  brew install prek
-# Setup: prek install
-# Manual run: prek run --all-files
-
-# Uncomment to prevent commits to master branch
-# [[repos]]
-# repo = "https://github.com/pre-commit/pre-commit-hooks"
-# rev = "v6.0.0"
-# hooks = [
-#   { id = "no-commit-to-branch", args = ["--branch", "master"] }
-# ]
+# prek.toml — repo-root cross-cutting hygiene hooks.
+#
+# Project-scoped hooks, when present, live in each project's own prek.toml.
+# prek's workspace mode walks both. See README.md for setup commands.
 
 # Built-in hooks (fast, offline, Rust-based)
 [[repos]]
@@ -39,7 +30,31 @@ hooks = [
   { id = "pretty-format-json", args = ["--autofix", "--indent=2"], exclude_types = ["jupyter"] },
 ]
 
-# Markdown formatting and linting
+# Secret-scanner (gitleaks)
+[[repos]]
+repo = "https://github.com/gitleaks/gitleaks"
+rev = "v8.21.4"
+hooks = [
+  { id = "gitleaks" },
+]
+
+# Typo checker — typos by crate-ci, very low false-positive rate.
+[[repos]]
+repo = "https://github.com/crate-ci/typos"
+rev = "v1.28.4"
+hooks = [
+  { id = "typos" },
+]
+
+# GitHub Actions workflow validation
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "v1.7.7"
+hooks = [
+  { id = "actionlint" },
+]
+
+# Markdown / shell / yaml / toml formatting via prettier
 [[repos]]
 repo = "https://github.com/rbubley/mirrors-prettier"
 rev = "v3.8.3"
@@ -47,6 +62,7 @@ hooks = [
   { id = "prettier", types_or = ["markdown", "shell", "toml", "yaml"] },
 ]
 
+# Markdown linting
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
 rev = "v0.22.1"
@@ -54,6 +70,7 @@ hooks = [
   { id = "markdownlint-cli2", name = "markdown lint" },
 ]
 
+# Prose linting
 [[repos]]
 repo = "https://github.com/vale-cli/vale"
 rev = "v3.14.1"
@@ -69,7 +86,7 @@ hooks = [
   { id = "shellcheck" },
 ]
 
-# Python formatting and linting (for future Python scripts in skills)
+# Python formatting and linting (for utility scripts under skills/)
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
 rev = "v0.15.12"
@@ -78,7 +95,7 @@ hooks = [
   { id = "ruff-check", types_or = ["python", "pyi"], args = ["--fix"] },
 ]
 
-# Python type checking (for future Python scripts in skills)
+# Python type checking
 [[repos]]
 repo = "https://github.com/RobertCraigie/pyright-python"
 rev = "v1.1.409"

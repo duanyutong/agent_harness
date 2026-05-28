@@ -1,0 +1,22 @@
+# typos (https://github.com/crate-ci/typos) — typo allowlist.
+#
+# Add domain terms, acronyms, or library/crate names the dictionary doesn't
+# know about here. Per the modernity rule, prefer fixing typos over silencing.
+
+[files]
+extend-exclude = [
+  "*.lock",
+  "*.svg",
+  ".git/",
+  "target/",
+  "node_modules/",
+  ".serena/",
+  ".cursor/",
+  ".codegraph/",
+]
+
+[default.extend-words]
+# GitHub PR review thread global IDs use the form PRRT_kw…Tht…; opt the
+# substring out so genuine "Tht" -> "The/That" suggestions still happen
+# elsewhere in prose.
+Tht = "Tht"

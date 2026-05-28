@@ -1,27 +1,44 @@
 # Agent Harness
 
-General harness-level tooling for agentic coding workflows.
+Polyglot monorepo of agent-adjacent tooling.
 
-Written in an agent-agnostic manner to support reuse across agent frameworks.
+Each subdirectory is an independent project with its own toolchain. The repo
+root owns cross-cutting hygiene (linters, editor config, contributor docs);
+projects own their own languages, build systems, and tests.
+
+## Projects
+
+| Path                       | Purpose                                           | Stack   |
+| -------------------------- | ------------------------------------------------- | ------- |
+| [`local-llm/`](local-llm/) | Benchmark and serving experiments for local LLMs. | Python. |
+| [`skills/`](skills/)       | Reusable agent skills (markdown specifications).  | —       |
 
 ## Local Setup
 
-Example commands:
-
 ```sh
-# Assumes the repository was cloned to ~/agent_harness.
-mkdir -p ~/.agents && ln -s ~/agent_harness/skills ~/.agents/skills
+mkdir -p ~/.agents && ln -s "$(pwd)/skills" ~/.agents/skills
 ```
 
-## Pre-commit Hooks
+## Validation
 
-Pre-commit hooks are managed by [prek](https://github.com/j178/prek).
-
-1. Install `prek` and make it available in your `PATH`.
-2. Install git hooks in the repository with `prek install`.
-
-To run validation on all files, use:
+Every change must pass:
 
 ```sh
 prek run --all-files
+```
+
+`prek` reads the root [`prek.toml`](prek.toml) for cross-cutting hygiene plus
+any project-local `prek.toml` files for project-scoped toolchain hooks. Run
+`prek install` once to wire up the git hook. See [`AGENTS.md`](AGENTS.md) for
+agent-facing rules.
+
+## Pre-commit hook management
+
+Pre-commit hooks are managed by [prek](https://github.com/j178/prek), a single
+binary reimplementation of pre-commit with first-class monorepo support.
+
+```sh
+brew install prek      # or: cargo install prek
+prek install           # install the git hook
+prek run --all-files   # run every hook against every file
 ```
