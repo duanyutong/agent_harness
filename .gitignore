@@ -1,3 +1,45 @@
+# OS / IDE
 .DS_Store
 .codegraph/
-.cursor
+.cursor/
+.idea/
+.vscode/
+*.swp
+*~
+
+# Tool caches (per-tool, local to clones)
+.serena/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.pyright_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Rust
+target/
+**/*.rs.bk
+*.pdb
+
+# Node / Bun
+node_modules/
+.bun/
+dist/
+.parcel-cache/
+.turbo/
+.next/
+.solid/
+.output/
+*.log
+
+# Build artifacts
+/coverage/
+*.lcov
+*.profraw
