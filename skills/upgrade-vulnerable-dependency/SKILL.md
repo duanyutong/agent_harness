@@ -30,11 +30,34 @@ If an input can be inferred from manifests, lockfiles, or the alert, proceed and
 
 ### 2. Select a Safe Target Version
 
-- Use current package-index, upstream release, and advisory sources for the latest stable version and the version range that fixes the alert. Do not rely on memory for security status.
-- Record source URLs for the advisory, fixed range, and selected version so they can be cited in the PR.
-- Compare the latest version against local constraints and compatibility requirements.
-- Prefer the latest compatible fixed version. If the latest version is not feasible, choose the smallest fixed upgrade that satisfies the advisory and the repository constraints.
-- If no compatible fixed version is available, stop before broad refactoring and present findings: current version, affected range, fixed range, blocker, risk, and a concrete proposal such as a major-version migration plan, dependency replacement, upstream issue, temporary mitigation, or risk acceptance.
+Before editing dependency files, complete this target-selection record:
+
+- Current resolved version:
+- Affected range:
+- First patched version:
+- Latest stable version from the package index:
+- Latest stable fixed version:
+- Local compatibility constraints:
+- Selected target version:
+- Blocker, if not selecting the latest stable fixed version:
+
+Use current advisory, package-index, and upstream release sources to identify
+the affected range, fixed range, latest stable release, and selected target.
+Record source URLs for the PR; do not rely on memory for security status.
+
+Treat the first patched version as the minimum safe version, not the default
+choice. First try the latest stable fixed version with the package manager's
+native resolver command, then compare the result against local constraints such
+as declared ranges, engines or runtimes, peer dependencies, platform support,
+validation failures, and major-version risk.
+
+Select the latest compatible fixed version. If it is not feasible, document the
+concrete blocker and choose the smallest fixed upgrade that satisfies both the
+advisory and repository constraints. If no compatible fixed version is
+available, stop before broad refactoring and present findings: current version,
+affected range, fixed range, blocker, risk, and a concrete proposal such as a
+major-version migration, dependency replacement, upstream issue, temporary
+mitigation, or risk acceptance.
 
 ### 3. Use a Temporary Worktree
 

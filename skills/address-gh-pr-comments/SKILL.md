@@ -18,19 +18,20 @@ Structured workflow: pull comments → create plan → get approval → implemen
    opening a pager. If a command does open a pager or appears stuck in an
    alternate-screen buffer, rerun that command with `GH_PAGER=cat gh ...` rather
    than exporting a global pager override.
-2. Fetch unresolved threads: filter for `isResolved: false` and threads where the author has not replied yet.
-   Preserve both identifiers needed for later replies:
+2. Fetch existing review comments (including both review bodies and open threads): filter for `isResolved: false` and threads where the author has not replied yet.
+   For threads, preserve both identifiers needed for later replies:
    - the review-thread GraphQL node ID, used by `addPullRequestReviewThreadReply`;
    - the review-comment `databaseId`, used by the REST `in_reply_to` endpoint.
    - If a GitHub tool does not expose review-thread IDs, use `gh api graphql` during gathering
      rather than rediscovering threads during the reply phase.
-3. Review the threads and create a plan.
+3. Review the review comments and create a plan.
 4. Present the plan file to the user for review and approval before proceeding (format the file path as a link to enable one-click view).
 
 Plan structure:
 
 - For each thread: check the file/line, context, reviewer comment, review-thread GraphQL node ID, and review-comment `databaseId`; make an assessment; discuss the issue and rationale; propose an action; and draft a reply.
   - Reply should be concise, clear, and natural.
+- For issues raised outside of inline threads and in review bodies: take them into account and draft applicable reply, too.
 
 Plan location:
 
@@ -43,6 +44,7 @@ Plan location:
 - Once the plan is approved, apply changes that address each approved item.
 - Do not make excessive changes beyond the plan.
 - Update applicable tests and docs if they are affected.
+- Use a separate, temporary worktree if asked; default to the local worktree where the active branch can be switched as needed.
 
 ### Phase 3: Validate
 
@@ -56,10 +58,19 @@ Discover and run the repository lint and test configuration:
 ### Phase 4: Update Branch
 
 1. Stage changes: `git add ...`
-2. Update:
-   - Single commit: amend, e.g. `git amend` (branchless) or `gt m` (graphite).
-   - Multi-commit: `git commit --fixup=<sha>` then `git rebase -i --autosquash <base>`.
-   - Stacked PR: if the amend did not work fully, run the restack command to rebase the stack and fix any conflicts in the upstack.
+2. Before rewriting history, determine whether the branch is part of a stack.
+   - In branchless repositories, inspect the stack with `git ls` or `git smartlog`.
+   - In Graphite repositories, inspect the stack with `gt ls`.
+   - If any upstack branches or descendant commits depend on the commit being rewritten, treat the branch as stacked.
+3. Update:
+   - Single non-stacked commit: use any amend command.
+   - Multi-commit non-stacked branch: `git commit --fixup=<sha>` then `git rebase -i --autosquash <base>`.
+   - Stacked branch: amend the target commit and expect it to automatically restack
+     - Branchless: `git amend` auto-restacks; Use `git restack --merge` and resolve conflicts if necessary.
+     - Graphite: `gt m` auto-restacks; use `gt restack` if necessary.
+     - Do not leave abandoned commits, unrestacked upstack branches, or restack conflicts behind.
+       If a conflict cannot be resolved safely, stop and report.
+   - Before pushing, use a sync command to ensure the stack/commit is up-to-date with remote main.
 
 ### Phase 5: Reply and Resolve
 
