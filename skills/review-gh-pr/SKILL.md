@@ -37,6 +37,8 @@ Do not use this skill when the user asks to:
 Use the best available PR and issue access mechanism in the execution environment.
 The `gh` CLI is one viable option. When using it, if a command hangs or buffers output because a pager is active, retry with `GH_PAGER=cat`, for example `export GH_PAGER=cat && gh ...`.
 
+If fetching fails (e.g. due to auth errors), stop here immediately and alert the user.
+
 #### Worktree
 
 - Avoid modifying the user's active checkout (or default worktree).
@@ -78,11 +80,12 @@ Do not repeat the file content in your response.
 #### Tone
 
 - Keep review comments polite, appreciative, collegial, and concise.
+  Do not demand changes; when a change is needed, explain the impact and requested action clearly and courteously.
 - Ask questions and request changes courteously, particularly where the issue is minor, judgement-dependent, or exploratory.
 - Avoid categorical language unless the evidence is conclusive.
   If confidence is below certainty, qualify the concern; for example, write `This seems like a bug because ...`.
 - For routine cleanup or housekeeping work, acknowledge the author's effort where appropriate.
-- If our previous comments has been acknowledged or addressed by the author, thank them briefly in the final approval.
+- If our previous comments has been acknowledged or addressed by the author, thank them briefly in the final approval body (not repetitively in each inline comment).
 
 #### Plan Structure
 
@@ -116,6 +119,41 @@ Relationship with CI checks:
 - Do not cite CI being green as the basis for approval in the review body.
 - The review decision may be `Approve` if the blocking CI failure is the only outstanding issue and the PR is otherwise substantively sound.
 
+Readability:
+
+- Avoid cramming everything into one single paragraph in a comment (either body or inline).
+- Follow best writing practices and Break it up into readable paragraphs.
+- Each new inline comment should be two concise paragraphs: the first describing the issue, and the second making suggestions.
+
+#### Requirements for the Review Body
+
+Use the review body only to state the overall impression and/or concrete next steps.
+Keep it concise.
+Do not repeat or summarize details that are already covered by inline comments.
+Do not write about whether you found blocking issues; the review decision already communicates that.
+
+Good examples:
+
+- "LGTM."
+- "Overall LGTM; one minor comment."
+- "Thanks for addressing all previous comments. LGTM."
+
+Bad examples:
+
+- "I have not found any blocking issues in this round." or "I found one edge case in...around..."
+  - Just avoid "I found".
+- "There is an issue when A happens triggering B in C ways leading to D edge case. I added an inline comment below with more details."
+  - Too much repetition and verbosity.
+
+Thank the author when both of the following are true:
+
+- This is an approving review that concludes the overall process.
+- The author thoughtfully addressed prior feedback, or the PR is a strong improvement or cleanup.
+- We have not thanked the author in the review body of a previous approval.
+
+Repeated thanks sound formulaic rather than genuine.
+So only thank them once in the review body, not each inline thread.
+
 #### Requirements for the "Existing Review Threads" Section
 
 In this section, review every existing PR review thread.
@@ -141,7 +179,7 @@ Example item:
    - Location: `src/random_utils.py:42`
    - Concern: The variable name contains a typographical error.
    - Resolution: Pending.
-   - Draft reply: None; the thread is awaiting author action.
+   - Draft reply or action: None; the thread is awaiting author action.
 ```
 
 Apply the following policy when deciding whether to draft replies to existing threads:
@@ -151,8 +189,9 @@ Apply the following policy when deciding whether to draft replies to existing th
   - If it appears to have been resolved without being addressed, draft a concise reply that records the remaining concern. For minor non-blocking issues, state that the concern remains but does not block approval. For potentially substantive issues, ask the author to confirm whether the concern has merit or is a false positive and, if it has merit, whether it is being intentionally left unaddressed or will be addressed.
 - If the thread is open:
   - If it is still awaiting PR author action or response, and no additional review input would advance the discussion, do not draft a reply.
-  - If a prior reviewer has raised a concern with which we agree, draft a brief `+1` reply only when explicit concurrence would clarify the review position.
+  - If a prior reviewer has raised a concern with which we agree, draft a brief `+1` reply only when explicit concurrence would clarify the review position, or when we have independently reproduced the issue raised.
   - If clarification, additional evidence, or a distinct technical perspective would advance the discussion, draft an informative reply rather than restating prior comments.
+  - If the thread was opened by us and has been addressed, draft a concise reply acknowledging it and resolve the thread as you publish the review.
 
 #### Requirements for the "Proposed New Inline Comments" Section
 
@@ -190,15 +229,16 @@ Example item:
 
 ### 4. Publish Review to GitHub
 
-Once approved, take the latest state of the Plan (possibly modified by the user) and publish it through the available GitHub API mechanism. When publishing via `gh`, use raw `gh api graphql`; if pager handling is not already configured and output buffering occurs, prefix commands with `GH_PAGER=cat`, for example `export GH_PAGER=cat && gh api graphql`.
-Take care to avoid duplicate publications; only retry when the call has failed due to a network or server error.
+Once approved, take the latest state of the Plan (possibly modified by the user) and publish it through the available GitHub API mechanism.
+
+Notes about tooling:
+
+- When publishing via `gh`, use raw `gh api graphql`.
+  Use `GH_PAGER` as needed like before.
+- Do not use `gh pr review` for this case: it cannot attach replies to existing review threads.
+- Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
 
 Use one pending review for the entire publication whenever the review includes replies to existing threads, or when publishing mixed existing-thread replies and new inline comments.
-Do not use `gh pr review` for this case: it cannot attach replies to existing review threads.
-Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
-
-If any publish request fails after creating the pending review, do not retry the same request without inspection.
-Inspect the pending review or delete and recreate it before retrying so replies or inline threads are not duplicated.
 
 #### GraphQL Pending Review Workflow
 
@@ -315,14 +355,21 @@ Parameters:
   - `side`: `LEFT` for deletions or `RIGHT` for additions
   - `startLine` and `startSide`: Include for multi-line comments
 
-For reviews with no existing-thread replies, the REST create-review endpoint remains acceptable. Prefer GraphQL for consistency when the Plan contains both new inline comments and existing-thread replies.
+For reviews with no existing-thread replies, the REST create-review endpoint remains acceptable.
+Prefer GraphQL for consistency when the Plan contains both new inline comments and existing-thread replies.
 
-References:
+#### Error Handling
 
-- [GitHub GraphQL `addPullRequestReview`](https://docs.github.com/en/graphql/reference/mutations#addpullrequestreview)
-- [GitHub GraphQL `addPullRequestReviewThreadReply`](https://docs.github.com/en/graphql/reference/mutations#addpullrequestreviewthreadreply)
-- [GitHub GraphQL `submitPullRequestReview`](https://docs.github.com/en/graphql/reference/mutations#submitpullrequestreview)
-- [GitHub REST review comment replies](https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment)
+Take care to avoid duplicate publications; only retry when the call has failed due to a network or server error.
+
+If any publish request fails after creating the pending review, do not retry the same request without inspection.
+
+Inspect the pending review or delete and recreate it before retrying so replies or inline threads are not duplicated.
+
+#### Verification
+
+For successful requests, still audit the response to ensure nothing is missing or incorrect.
+A successful submit does not guarantee that all inline comments were created.
 
 ### 5. Finalise
 
@@ -331,3 +378,10 @@ Do not preemptively clean up when iteration may still be needed.
 
 Provide the PR link back to the user for verification.
 Do not repeat the review content that has been posted in your response.
+
+### API References
+
+- [GitHub GraphQL `addPullRequestReview`](https://docs.github.com/en/graphql/reference/mutations#addpullrequestreview)
+- [GitHub GraphQL `addPullRequestReviewThreadReply`](https://docs.github.com/en/graphql/reference/mutations#addpullrequestreviewthreadreply)
+- [GitHub GraphQL `submitPullRequestReview`](https://docs.github.com/en/graphql/reference/mutations#submitpullrequestreview)
+- [GitHub REST review comment replies](https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment)
