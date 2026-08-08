@@ -80,7 +80,8 @@ Do not repeat the file content in your response.
 #### Tone
 
 - Keep review comments polite, appreciative, collegial, and concise.
-  Do not demand changes; when a change is needed, explain the impact and requested action clearly and courteously.
+  Make sure to use a friendly voice and be gentle in all comments.
+  Do not demand changes (i.e. avoid "please change this"); when a change is needed, explain the impact and requested action clearly and courteously.
 - Ask questions and request changes courteously, particularly where the issue is minor, judgement-dependent, or exploratory.
 - Avoid categorical language unless the evidence is conclusive.
   If confidence is below certainty, qualify the concern; for example, write `This seems like a bug because ...`.
@@ -108,6 +109,10 @@ Do not repeat the file content in your response.
 
 For general guidance on writing review body and comments, see [./standards/code-review.md](./standards/code-review.md).
 
+Clarity: When bringing up an issue, it must be clearly explained.
+Concise and precise language is good, but it mustn't be cryptic.
+The comment must inform the reader of the issue in a clearly understandable way.
+
 Decision: Only use "Request Changes" if the PR has serious defects and has already been approved by other reviews and could be merged at any minute.
 
 Relationship with CI checks:
@@ -119,11 +124,16 @@ Relationship with CI checks:
 - Do not cite CI being green as the basis for approval in the review body.
 - The review decision may be `Approve` if the blocking CI failure is the only outstanding issue and the PR is otherwise substantively sound.
 
-Readability:
+#### Mandatory comment formatting
 
-- Avoid cramming everything into one single paragraph in a comment (either body or inline).
-- Follow best writing practices and Break it up into readable paragraphs.
-- Each new inline comment should be two concise paragraphs: the first describing the issue, and the second making suggestions.
+For every inline comment and thread reply:
+
+- Never cram everything into one single paragraph in a comment.
+  - The first paragraph describes the issue clearly.
+  - The second paragraph suggests the solution(s), or ask clarifying questions.
+    Include a code snippet when useful to make it clear what the suggestion is.
+- Before presenting the Plan, audit every comment.
+  Any comment containing multiple logical components without paragraph breaks fails the audit and should be reformatted.
 
 #### Requirements for the Review Body
 
