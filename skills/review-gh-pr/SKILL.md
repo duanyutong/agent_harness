@@ -84,7 +84,8 @@ Do not repeat the file content in your response.
   Do not demand changes (i.e. avoid "please change this"); when a change is needed, explain the impact and requested action clearly and courteously.
 - Ask questions and request changes courteously, particularly where the issue is minor, judgement-dependent, or exploratory.
 - Avoid categorical language unless the evidence is conclusive.
-  If confidence is below certainty, qualify the concern; for example, write `This seems like a bug because ...`.
+  If confidence is below certainty, qualify the concern; e.g. `This seems like a bug because ...`, `If I understand correctly...`.
+- Use abbreviations, shorthands, and mix in some common colloquial expressions with variations to make the comments sound natural and not robotic (e.g. `docs`, `perf`, `What if we...`, `Suggestion is to...`, `I guess this should be fine but it'd be best if ...`)
 - For routine cleanup or housekeeping work, acknowledge the author's effort where appropriate.
 - If our previous comments has been acknowledged or addressed by the author, thank them briefly in the final approval body (not repetitively in each inline comment).
 
@@ -240,6 +241,8 @@ Example item:
 ### 4. Publish Review to GitHub
 
 Once approved, take the latest state of the Plan (possibly modified by the user) and publish it through the available GitHub API mechanism.
+The latest state of the plan must be checked to take into edits made by the user before publishing.
+Never post a review from memory without inspecting the Plan file.
 
 Notes about tooling:
 
