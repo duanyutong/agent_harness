@@ -69,8 +69,11 @@ Each inline comment should:
 
 - Begin with one of the standard disposition indicators plus the issue type without emphasis in bold.
   State the issue type in parentheses, for example readability, design, correctness, or security.
+  The issue type should be specific: `error handling`, `perf`, `readability`, `str manipulation`, etc, not just generic `design` or `correctness`.
   Use `Major (...):` sparingly only when flagging issues of utmost severity.
   Examples:
+  - `Bug (dtypes):`
+  - `Major (security):`
   - `FYI (perf):`
   - `Minor (readability):`
   - `Typo (doc)`
