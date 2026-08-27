@@ -32,7 +32,7 @@ Disposition indicators improve code review effectiveness by:
 - **Maintaining positive tone**: Marking nitpicks as "nit" or "minor" signals that they concern minor improvements, not severe criticisms
 - **Speeding up resolution**: Reviewers and authors quickly align on what must be addressed before merge
 
-Use the following table of standard disposition indicators in the beginning of each comment to indicate the severity and nature of the issue.
+Use the following table of standard disposition indicators in the beginning of each thread-starting comment to indicate the severity and nature of the issue.
 This convention is based on [Reviewable's disposition system](https://docs.reviewable.io/discussions#dispositions-and-resolution).
 
 | Indicator        | Disposition | Blocking? |
@@ -65,9 +65,9 @@ Do not elaborate, add multiple points, or repeat the inline comments. Examples:
 
 ### Inline Comments
 
-Each inline comment should:
+Each inline comment that starts a new threadshould:
 
-- Begin with one of the standard disposition indicators plus the issue type without emphasis in bold.
+- Begin with one of the standard disposition indicators plus the issue type without emphasis in bold, in the format of `Disposition (issue type):`.
   State the issue type in parentheses, for example readability, design, correctness, or security.
   The issue type should be specific: `error handling`, `perf`, `readability`, `str manipulation`, etc, not just generic `design` or `correctness`.
   Use `Major (...):` sparingly only when flagging issues of utmost severity.
@@ -85,7 +85,7 @@ Each inline comment should:
 - Consider the scope and size of the PR—if addressing the issue can be deferred to a follow-up, mention that (only if the change would be large or significantly out of scope)
 
 Only use "LGTM" when replying to an existing, open thread that has been fully addressed.
-Do not add new inline comments that are simply LGTM.
+Replies to existing threads do not need to include `Disposition (issue type):`.
 
 ## Code Review Checklist
 
