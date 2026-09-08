@@ -250,6 +250,7 @@ Notes about tooling:
   Use `GH_PAGER` as needed like before.
 - Do not use `gh pr review` for this case: it cannot attach replies to existing review threads.
 - Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
+- Ensure that characters are properly escaped (e.g. `\n` should not be double-escaped and posted as raw literals).
 
 Use one pending review for the entire publication whenever the review includes replies to existing threads, or when publishing mixed existing-thread replies and new inline comments.
 
@@ -381,7 +382,7 @@ Inspect the pending review or delete and recreate it before retrying so replies 
 
 #### Verification
 
-For successful requests, still audit the response to ensure nothing is missing or incorrect.
+For successful requests, still audit the response to ensure nothing is missing or incorrect (e.g. line break characters should not appear as literal `\n`).
 A successful submit does not guarantee that all inline comments were created.
 
 ### 5. Finalise
