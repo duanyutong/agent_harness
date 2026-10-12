@@ -7,7 +7,11 @@
 *.swp
 *~
 
+# Local agent artefacts
+/.agents/
+
 # Tool caches (per-tool, local to clones)
+/skills/synced/
 .serena/
 .ruff_cache/
 .pytest_cache/

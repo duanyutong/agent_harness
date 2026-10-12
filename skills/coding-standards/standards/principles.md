@@ -11,7 +11,9 @@ This document outlines language-agnostic software engineering principles and bes
 - Separation of Concerns (Dijkstra, "On the role of scientific thought", 1974)
 - Unix Philosophy (Doug McIlroy, _Bell System Technical Journal_, 1978)
 
-## Safety
+## Safety-Critical Systems
+
+Apply the following restrictions only to safety-critical software whose assurance requirements justify them. For other software, use safety practices appropriate to its language, runtime, and repository.
 
 The Power of 10: Rules for Developing Safety-Critical Code (NASA/JPL)
 

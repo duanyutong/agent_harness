@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test skill setup
+        run: ./tests/setup.sh
+
       - name: Install prek
         run: |
           curl -LsSf https://github.com/j178/prek/releases/latest/download/prek-installer.sh | sh

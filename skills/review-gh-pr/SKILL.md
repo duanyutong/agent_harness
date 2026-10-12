@@ -56,16 +56,9 @@ If fetching fails (e.g. due to auth errors), stop here immediately and alert the
 First check whether the repository provides its own guidelines.
 Prefer these repository-specific guidelines if they conflict with general best practices.
 
-Use a read_file tool to load guideline files from the `./standards/` directory next to this skill file:
+Read the [coding-standards skill](../coding-standards/SKILL.md) and follow its instructions to load the general principles and relevant language-specific standards. Resolve its resource paths relative to that skill's directory. The `coding-standards` skill must be installed alongside this skill.
 
-- Always load the general, language-agnostic guidelines first from [./standards/principles.md](./standards/principles.md).
-- Always load the code review guidelines from [./standards/code-review.md](./standards/code-review.md).
-- For each detected language, attempt to load the corresponding language-specific guideline file from `./standards/{language}.md`. Available guidelines include:
-  - Python: [./standards/python.md](./standards/python.md)
-  - Shell: [./standards/shell.md](./standards/shell.md)
-  - Additional language-specific guidelines may be added over time
-
-If no guideline exists for the detected language, apply established modern practices and standards for that language.
+Then load the [code review guidelines](./standards/code-review.md), resolving this path relative to the current skill's directory.
 
 ### 3. Conduct Review
 
