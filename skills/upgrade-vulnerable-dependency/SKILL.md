@@ -25,7 +25,7 @@ If an input can be inferred from manifests, lockfiles, or the alert, proceed and
 - Identify the package manager and dependency files, such as `package.json`, lockfiles, `Gemfile`, `pyproject.toml`, `uv.lock`, `poetry.lock`, `requirements*.txt`, `Cargo.toml`, `go.mod`, `pom.xml`, or Gradle files.
 - Determine whether the package is direct or transitive, its declared constraint, and its resolved version.
 - For transitive packages, inspect the dependency path and prefer upgrading the parent package or resolver output. Use overrides/resolutions only when necessary, and state the tactical risk.
-- Find the package-manager-native bump command, for example `npm update`, `pnpm up`, `yarn up`, `bundle update`, `uv lock --upgrade-package`, `poetry update`, `cargo update -p`, or `go get`.
+- Identify the package manager's native upgrade operation. Read [the dependency operations reference](references/dependency-operations.md) when selecting the resolver command.
 - Note blockers such as manifest pins, runtime/engine constraints, peer dependencies, platform constraints, or major-version compatibility risks.
 
 ### 2. Select a Safe Target Version

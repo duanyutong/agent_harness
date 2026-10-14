@@ -20,8 +20,7 @@ Each paragraph and each bullet should be a single line, regardless of line lengt
 
 Fetch these in parallel:
 
-- PR diff: get the full diff using a GitHub tool or `gh pr diff` CLI.
-  Avoid alternate-buffer issues, for example those caused by pagers such as `less`, by using `export GH_PAGER=cat && gh ...` when needed.
+- PR diff: retrieve the full diff through the available GitHub interface. Read [the gathering operations](references/github-operations.md#gather-and-back-up-context) when using the CLI.
 - PR template: look for a template in the repository's standard locations.
 - Existing description: fetch and back up the existing PR description.
 - Write to `.agents/pr-descriptions/pr-<number>-<timestamp>-backup.md` relative to the target repository root.
@@ -61,4 +60,4 @@ Write the new description to `.agents/pr-descriptions/pr-<number>-<timestamp>-ne
 
 ### 4. Post the Update
 
-Use `gh pr edit <PR> --body "<updated>"` or equivalent tool to update the description.
+Publish the prepared description through the available GitHub interface, following [the publication operations](references/github-operations.md#publish-the-prepared-description). Use the exact prepared file so Markdown, newlines and automation blocks are preserved.
