@@ -21,15 +21,31 @@ Run the following command from the repository root:
 ./setup.sh
 ```
 
-The installer links `~/.agents/skills` to the repository's shared `skills/` directory. If the `claude` command is available on `PATH`, it also creates an independent `~/.claude/skills/` directory if absent; otherwise, it skips Claude-specific checks and leaves all Claude paths untouched. Repeated runs preserve an existing correct setup. The script checks for conflicts before making changes and never deletes, moves, or overwrites existing data. Use `./setup.sh --home /absolute/path` to configure a different existing home directory.
+The installer creates an independent `~/.agents/skills/` directory and links each repository skill into it individually.
+Other installers may add skills from separate repositories to the same discovery directory without modifying this checkout.
+Existing unrelated skills are preserved, and repeated runs add newly introduced repository skills without replacing existing entries.
+If the `claude` command is available on `PATH`, the installer also creates an independent `~/.claude/skills/` directory if absent; otherwise, it leaves Claude paths untouched.
+The script checks for conflicts before making changes and never deletes, moves, or overwrites existing data.
+Use `./setup.sh --home /absolute/path` to configure a different existing home directory.
 
-The shared `skills/` directory contains repository-maintained skills. Codex discovers these through `~/.agents/skills`; its bundled system skills remain in `~/.codex/skills/.system/`.
+The source `skills/` directory contains public, repository-maintained skills only.
+Private skills must reside outside this checkout and may be linked directly into the independent discovery directory by their own installer.
+Codex discovers the installed links through `~/.agents/skills/`; its bundled system skills remain in `~/.codex/skills/.system/`.
 
-Keep `~/.claude/skills/` as an independent directory. It must not be a symbolic link to `~/.agents/skills` or this repository's `skills/` directory. Claude-managed downloads belong in `~/.claude/skills/synced/`, outside the shared discovery tree. This configuration does not install the repository's skills for Claude.
+Keep `~/.agents/skills/` and `~/.claude/skills/` as independent physical directories.
+Neither directory may be a symbolic link to a repository or to the other discovery directory.
+Claude-managed downloads belong in `~/.claude/skills/synced/`.
+This configuration does not install the repository's skills for Claude.
 
-Existing directories or unrelated links at `~/.agents/skills`, symbolic links at the directories being configured, and a shared `skills/synced/` entry are reported as conflicts. Shared-directory checks apply even when Claude is absent. Resolve conflicts manually before rerunning the installer. For an old installation where `~/.claude/skills` links to the shared directory, remove only that symbolic link, create an independent directory at the same path, and move any shared `synced/` directory into `~/.claude/skills/synced/` after confirming that the destination is absent. Preserve the downloaded files during this migration.
+Conflicting entries for a repository skill name, symbolic links at discovery directories, invalid source skill directories, and a source `skills/synced/` entry prevent installation before any changes are made.
+Source-directory checks apply even when Claude is absent.
+Resolve conflicts manually before rerunning the installer.
+For a legacy `~/.agents/skills` link to this repository, remove only that symbolic link, then rerun `./setup.sh` to create the directory and individual skill links.
+For a legacy `~/.claude/skills` link, remove only that symbolic link, create an independent directory at the same path, and move any shared `synced/` directory into `~/.claude/skills/synced/` after confirming that the destination is absent.
+Preserve the downloaded files during migration.
 
-These home-directory links and directories are machine-local configuration and are not stored in Git. The ignore rules for `/.agents/` and `/skills/synced/` prevent local artefacts from being committed; they do not control skill discovery.
+These home-directory links and directories are local configuration and are not stored in Git.
+The ignore rules for `/.agents/` and `/skills/synced/` prevent local artefacts from being committed; they do not control skill discovery.
 
 ## Validation
 

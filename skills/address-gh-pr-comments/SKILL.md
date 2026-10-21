@@ -12,18 +12,12 @@ Structured workflow: pull comments → create plan → get approval → implemen
 
 ### Phase 1: Gather and Plan
 
-1. Get PR details: use a GitHub tool or the `gh pr view` CLI.
-   Prefer `--json` / `--jq` for machine-readable output. Do not force `GH_PAGER=cat`
-   by default; current `gh` behaviour streams normal PR view and diff output without
-   opening a pager. If a command does open a pager or appears stuck in an
-   alternate-screen buffer, rerun that command with `GH_PAGER=cat gh ...` rather
-   than exporting a global pager override.
+1. Get PR details through the available GitHub interface. Read [the gathering operations](references/github-operations.md#gather-pr-and-review-data) when using the CLI or retrieving review-thread identifiers.
 2. Fetch existing review comments (including both review bodies and open threads): filter for `isResolved: false` and threads where the author has not replied yet.
    For threads, preserve both identifiers needed for later replies:
-   - the review-thread GraphQL node ID, used by `addPullRequestReviewThreadReply`;
-   - the review-comment `databaseId`, used by the REST `in_reply_to` endpoint.
-   - If a GitHub tool does not expose review-thread IDs, use `gh api graphql` during gathering
-     rather than rediscovering threads during the reply phase.
+   - the review-thread GraphQL node ID;
+   - the review-comment `databaseId`.
+     Retrieve missing identifiers during gathering rather than rediscovering threads during publication.
 3. Review the review comments and create a plan.
 4. Present the plan file to the user for review and approval before proceeding (format the file path as a link to enable one-click view).
 
@@ -57,73 +51,31 @@ Discover and run the repository lint and test configuration:
 
 ### Phase 4: Update Branch
 
-1. Stage changes: `git add ...`
+Read [the branch-update operations](references/github-operations.md#amend-and-restack-branches) before amending or restacking.
+
+1. Stage the validated changes.
 2. Before rewriting history, determine whether the branch is part of a stack.
-   - In branchless repositories, inspect the stack with `git ls` or `git smartlog`.
-   - In Graphite repositories, inspect the stack with `gt ls`.
+   - Inspect the local graph with the repository's established stack tooling.
    - If any upstack branches or descendant commits depend on the commit being rewritten, treat the branch as stacked.
 3. Update:
-   - Single non-stacked commit: use any amend command.
-   - Multi-commit non-stacked branch: `git commit --fixup=<sha>` then `git rebase -i --autosquash <base>`.
+   - Single non-stacked commit: amend the owning commit.
+   - Multi-commit non-stacked branch: create a fixup for the owning commit and autosquash it into the branch.
    - Stacked branch: amend the target commit and expect it to automatically restack
-     - Branchless: `git amend` auto-restacks; Use `git restack --merge` and resolve conflicts if necessary.
-     - Graphite: `gt m` auto-restacks; use `gt restack` if necessary.
+     - Use the stack manager's amendment and restacking operations.
      - Do not leave abandoned commits, unrestacked upstack branches, or restack conflicts behind.
        If a conflict cannot be resolved safely, stop and report.
    - Before pushing, use a sync command to ensure the stack/commit is up-to-date with remote main.
 
-### Phase 5: Reply and Resolve
+### Phase 5: Reply and Update Description
 
 1. Post the approved replies from the plan to each thread explaining how it was addressed.
-   - Use a GitHub tool or the `gh api` CLI to reply to specific threads, e.g.
-
-   ```sh
-   gh api -X POST repos/{owner}/{repo}/pulls/{pr_number}/comments \
-      -f body="$REPLY_TEXT" \
-      -F in_reply_to=$COMMENT_ID
-   ```
-
-   - Default to the REST reply endpoint for a small number of replies (roughly 1-5).
-     It is explicit, maps directly to review-comment `databaseId` values, and keeps
-     retry and failure handling straightforward.
-   - For more than five independent replies, use one GraphQL request with aliased
-     `addPullRequestReviewThreadReply` mutations when review-thread IDs are available
-     from the gather step. This reduces HTTP round trips and can be more efficient for
-     secondary request-point rate limits. Content-creation limits still apply, so do
-     not use batching to post large volumes too quickly.
+   - Read [the reply-publication operations](references/github-operations.md#publish-thread-replies) for endpoint selection, batching and request construction.
    - Do not use multiple agents, background jobs, or parallel shell commands to post
      review replies concurrently. If batching is not available, post serially and
      honour rate-limit headers.
-   - Construct batched GraphQL replies as separate aliases in one mutation, e.g.
+   - Verify each reply's result and retry only failed replies. Respect provider rate limits and backoff requirements.
 
-   ```graphql
-   mutation ($thread0: ID!, $body0: String!, $thread1: ID!, $body1: String!) {
-     reply0: addPullRequestReviewThreadReply(
-       input: { pullRequestReviewThreadId: $thread0, body: $body0 }
-     ) {
-       comment {
-         id
-         url
-       }
-     }
-     reply1: addPullRequestReviewThreadReply(
-       input: { pullRequestReviewThreadId: $thread1, body: $body1 }
-     ) {
-       comment {
-         id
-         url
-       }
-     }
-   }
-   ```
-
-   - When batching GraphQL replies, inspect the response for per-mutation errors and
-     retry only the failed replies. Do not resolve reviewer threads.
-   - If posting many mutating requests individually, keep them serial and pause
-     between requests. On `403`/`429` rate-limit responses, honour `retry-after` or
-     `x-ratelimit-reset`; otherwise back off before retrying.
-
-2. Update the PR description if the scope changed, using the CLI: `gh pr edit <PR> --body "<updated>"`
+2. Update the PR description if the scope changed, using [the description-publication operation](references/github-operations.md#update-the-pr-description).
 
 Never resolve reviewer threads.
 Leave that to the reviewer who posted the comment.

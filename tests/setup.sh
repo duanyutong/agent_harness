@@ -45,8 +45,9 @@ run_setup() {
 }
 
 assert_layout() {
-  [ -L "$test_home/.agents/skills" ]
-  [ "$(readlink "$test_home/.agents/skills")" = "$test_repo/skills" ]
+  [ -d "$test_home/.agents/skills" ]
+  [ ! -L "$test_home/.agents/skills" ]
+  [ "$(readlink "$test_home/.agents/skills/example")" = "$test_repo/skills/example" ]
   [ -d "$test_home/.claude/skills" ]
   [ ! -L "$test_home/.claude/skills" ]
   [ ! -e "$test_repo/skills/skills" ]
@@ -77,7 +78,8 @@ diff -u "$test_case/before" "$test_case/after"
 fixture
 rm "$test_setup_path/claude"
 run_setup > /dev/null
-[ -L "$test_home/.agents/skills" ]
+[ -d "$test_home/.agents/skills" ]
+[ ! -L "$test_home/.agents/skills" ]
 [ ! -e "$test_home/.claude" ]
 snapshot > "$test_case/before"
 run_setup > /dev/null
@@ -90,8 +92,9 @@ assert_layout
 
 # Existing independent data and relative links remain unchanged.
 fixture
-mkdir -p "$test_home/.agents" "$test_home/.claude/skills/synced"
-ln -s ../../repository/skills "$test_home/.agents/skills"
+mkdir -p "$test_home/.agents/skills/local" "$test_home/.claude/skills/synced"
+ln -s ../../../repository/skills/example "$test_home/.agents/skills/example"
+printf 'Local skill\n' > "$test_home/.agents/skills/local/SKILL.md"
 printf 'Claude download\n' > "$test_home/.claude/skills/synced/keep"
 printf 'Agent settings\n' > "$test_home/.agents/keep"
 snapshot > "$test_case/before"
@@ -99,24 +102,21 @@ run_setup > /dev/null
 snapshot > "$test_case/after"
 diff -u "$test_case/before" "$test_case/after"
 
-# Every existing entry at the shared link location is preserved on conflict.
-for entry_type in directory file link dangling; do
+# Invalid shared discovery roots are preserved on conflict.
+for entry_type in file link dangling legacy; do
   fixture
   mkdir -p "$test_home/.agents"
   case $entry_type in
-    directory)
-      mkdir "$test_home/.agents/skills"
-      printf 'Custom skills\n' > "$test_home/.agents/skills/keep"
-      ;;
     file) printf 'Keep this file\n' > "$test_home/.agents/skills" ;;
     link) ln -s "$test_case/external" "$test_home/.agents/skills" ;;
     dangling) ln -s "$test_case/missing" "$test_home/.agents/skills" ;;
+    legacy) ln -s "$test_repo/skills" "$test_home/.agents/skills" ;;
   esac
   reject_unchanged --home "$test_home"
 done
 
 # Provider directories must be physical directories, including their parents.
-for directory_path in .agents .claude .claude/skills; do
+for directory_path in .agents .agents/skills .claude .claude/skills; do
   for entry_type in file link dangling; do
     fixture
     conflict_path=$test_home/$directory_path
@@ -127,16 +127,63 @@ for directory_path in .agents .claude .claude/skills; do
       dangling) ln -s "$test_case/missing" "$conflict_path" ;;
     esac
     reject_unchanged --home "$test_home"
-    if [ "$directory_path" != .agents ]; then
+    if [ "$directory_path" = .claude ] || [ "$directory_path" = .claude/skills ]; then
       rm "$test_setup_path/claude"
-      mkdir -p "$test_home/.agents"
-      ln -s "$test_repo/skills" "$test_home/.agents/skills"
+      mkdir -p "$test_home/.agents/skills"
+      ln -s "$test_repo/skills/example" "$test_home/.agents/skills/example"
       snapshot > "$test_case/before"
       run_setup > /dev/null
       snapshot > "$test_case/after"
       diff -u "$test_case/before" "$test_case/after"
     fi
   done
+done
+
+# Skill-name collisions never replace independently managed data.
+for entry_type in directory file link dangling; do
+  fixture
+  mkdir -p "$test_home/.agents/skills"
+  case $entry_type in
+    directory)
+      mkdir "$test_home/.agents/skills/example"
+      printf 'Independent skill\n' > "$test_home/.agents/skills/example/SKILL.md"
+      ;;
+    file) printf 'Keep this file\n' > "$test_home/.agents/skills/example" ;;
+    link) ln -s "$test_case/external" "$test_home/.agents/skills/example" ;;
+    dangling) ln -s "$test_case/missing" "$test_home/.agents/skills/example" ;;
+  esac
+  reject_unchanged --home "$test_home"
+done
+
+# Later installs add new skills whilst retaining independently managed skills.
+fixture
+run_setup > /dev/null
+mkdir -p "$test_case/external/independent" "$test_repo/skills/another/references"
+printf 'Independent skill\n' > "$test_case/external/independent/SKILL.md"
+ln -s "$test_case/external/independent" "$test_home/.agents/skills/independent"
+printf 'Another skill\n' > "$test_repo/skills/another/SKILL.md"
+printf 'Supporting resource\n' > "$test_repo/skills/another/references/example.md"
+run_setup > /dev/null
+assert_layout
+[ "$(readlink "$test_home/.agents/skills/independent")" = "$test_case/external/independent" ]
+[ "$(readlink "$test_home/.agents/skills/another")" = "$test_repo/skills/another" ]
+cmp "$test_home/.agents/skills/another/references/example.md" "$test_repo/skills/another/references/example.md"
+snapshot > "$test_case/before"
+run_setup > /dev/null
+snapshot > "$test_case/after"
+diff -u "$test_case/before" "$test_case/after"
+
+# Invalid or redirected skill directories fail before changing the home layout.
+for entry_type in invalid link; do
+  fixture
+  case $entry_type in
+    invalid) mkdir "$test_repo/skills/invalid" ;;
+    link)
+      printf 'External skill\n' > "$test_case/external/SKILL.md"
+      ln -s "$test_case/external" "$test_repo/skills/redirected"
+      ;;
+  esac
+  reject_unchanged --home "$test_home"
 done
 
 # Claude downloads must not remain under the shared source directory.
@@ -197,7 +244,7 @@ diff -u "$test_case/before" "$test_case/after"
 # Filesystem operation failures preserve existing data and do not install a link.
 for failing_command in mkdir ln; do
   fixture
-  mkdir -p "$test_home/.agents" "$test_home/.claude/skills"
+  mkdir -p "$test_home/.agents/skills" "$test_home/.claude/skills"
   printf 'Existing Claude skill\n' > "$test_home/.claude/skills/keep"
   snapshot > "$test_case/before"
   if SETUP_TEST_FAILURE=$failing_command PATH="$test_setup_path" sh -c '

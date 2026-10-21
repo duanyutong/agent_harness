@@ -30,12 +30,11 @@ Do not use this skill when the user asks to:
 
 - Fetch PR details: retrieve the PR description, linked issues, and diff.
 - Fetch existing reviews and comments, including their status (open or resolved), authorship, and content.
-  - When only a REST review comment ID is available, find the parent GraphQL review thread node ID before publishing; GraphQL replies require the thread ID, not the comment ID.
+  - Preserve the identifiers needed to publish replies to existing threads; consult [the gathering operations](references/github-operations.md#gather-context) when the available interface omits them.
 - Identify languages: determine which programming languages are involved.
 - Locate any prior review rounds we conducted by checking the repository's `.agents/pr-reviews/pr-<number>-<timestamp>.md` files.
 
-Use the best available PR and issue access mechanism in the execution environment.
-The `gh` CLI is one viable option. When using it, if a command hangs or buffers output because a pager is active, retry with `GH_PAGER=cat`, for example `export GH_PAGER=cat && gh ...`.
+Use the best available PR and issue access mechanism in the execution environment. Read [the gathering operations](references/github-operations.md#gather-context) when using the CLI.
 
 If fetching fails (e.g. due to auth errors), stop here immediately and alert the user.
 
@@ -44,7 +43,7 @@ If fetching fails (e.g. due to auth errors), stop here immediately and alert the
 - Avoid modifying the user's active checkout (or default worktree).
 - Before creating or switching to a temporary linked worktree, record the current repository root as the artefact root.
 - If already in a dedicated review checkout, check out the PR branch when doing so materially improves the review.
-- If not in a dedicated review checkout, create a temporary linked worktree with `git worktree add` when full code navigation, local tooling, or tests would materially improve the review.
+- If not in a dedicated review checkout, create a temporary linked worktree when full code navigation, local tooling, or tests would materially improve the review. Read [the worktree operations](references/github-operations.md#review-worktrees) before creating it.
 - Use the temporary linked worktree only for inspecting code, running tools, and checking out PR branches.
 - Always write the Plan under the artefact root's `.agents/...` directory, even if code review happens in a temporary linked worktree.
 - If the agent starts inside a dedicated review checkout and no stable artefact root is known, write the Plan to the current checkout's `.agents/...` directory.
@@ -237,146 +236,13 @@ Once approved, take the latest state of the Plan (possibly modified by the user)
 The latest state of the plan must be checked to take into edits made by the user before publishing.
 Never post a review from memory without inspecting the Plan file.
 
-Notes about tooling:
+Read [the review-publication operations](references/github-operations.md#publication-tool-selection) before publishing. The reference contains API selection, identifier retrieval, pending-review construction, parameter syntax and retry procedures.
 
-- When publishing via `gh`, use raw `gh api graphql`.
-  Use `GH_PAGER` as needed like before.
-- Do not use `gh pr review` for this case: it cannot attach replies to existing review threads.
-- Do not use the REST create-review endpoint for this case either: REST replies use a separate endpoint, which publishes them outside the final review.
-- Ensure that characters are properly escaped (e.g. `\n` should not be double-escaped and posted as raw literals).
-
-Use one pending review for the entire publication whenever the review includes replies to existing threads, or when publishing mixed existing-thread replies and new inline comments.
-
-#### GraphQL Pending Review Workflow
-
-1. Fetch the pull request node ID and any GraphQL review thread node IDs needed for replies.
-2. Create one pending review with `addPullRequestReview` and no `event`; capture `pullRequestReview.id`.
-3. In one subsequent GraphQL request, add every existing-thread reply and every new inline review thread to that pending review, then submit it with `submitPullRequestReview`. Put `submitPullRequestReview` last; top-level GraphQL mutation fields run serially.
-
-Fetch IDs:
-
-```sh
-gh api graphql \
-  -f owner="{owner}" \
-  -f repo="{repo}" \
-  -F number={pull_number} \
-  -f query='
-query($owner: String!, $repo: String!, $number: Int!) {
-  repository(owner: $owner, name: $repo) {
-    pullRequest(number: $number) {
-      id
-      reviewThreads(first: 100) {
-        nodes {
-          id
-          isResolved
-          comments(first: 20) {
-            nodes {
-              id
-              databaseId
-              url
-              body
-              author { login }
-            }
-          }
-        }
-      }
-    }
-  }
-}'
-```
-
-Paginate `reviewThreads` or thread `comments` when the PR has more than the requested `first` count.
-
-Create the pending review:
-
-```sh
-gh api graphql \
-  -f pullRequestId="{pull_request_node_id}" \
-  -f query='
-mutation($pullRequestId: ID!) {
-  addPullRequestReview(input: { pullRequestId: $pullRequestId }) {
-    pullRequestReview { id }
-  }
-}'
-```
-
-Publish all review content into that pending review and submit it. Generate one aliased mutation field per reply or new inline thread, then submit last:
-
-```sh
-gh api graphql \
-  -f reviewId="{pending_review_node_id}" \
-  -f existingThreadId1="{review_thread_node_id}" \
-  -f replyBody1="Reply to an existing thread" \
-  -f newPath1="src/utils.py" \
-  -F newLine1=42 \
-  -f newSide1="RIGHT" \
-  -f newBody1="New inline review comment" \
-  -f event="APPROVE" \
-  -f body="Review body" \
-  -f query='
-mutation(
-  $reviewId: ID!
-  $existingThreadId1: ID!
-  $replyBody1: String!
-  $newPath1: String!
-  $newLine1: Int!
-  $newSide1: DiffSide!
-  $newBody1: String!
-  $event: PullRequestReviewEvent!
-  $body: String
-) {
-  reply1: addPullRequestReviewThreadReply(input: {
-    pullRequestReviewId: $reviewId
-    pullRequestReviewThreadId: $existingThreadId1
-    body: $replyBody1
-  }) {
-    comment { id url }
-  }
-  inline1: addPullRequestReviewThread(input: {
-    pullRequestReviewId: $reviewId
-    path: $newPath1
-    line: $newLine1
-    side: $newSide1
-    body: $newBody1
-  }) {
-    thread { id }
-  }
-  submit: submitPullRequestReview(input: {
-    pullRequestReviewId: $reviewId
-    event: $event
-    body: $body
-  }) {
-    pullRequestReview { id url state }
-  }
-}'
-```
-
-Parameters:
-
-- `pullRequestReviewId`: The pending review node ID returned by `addPullRequestReview`
-- `pullRequestReviewThreadId`: The GraphQL node ID of the existing review thread to reply to
-- `event`: `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`
-- New inline thread fields:
-  - `path`: File path relative to the repository root
-  - `line`: Line number; for multi-line comments, the end line
-  - `side`: `LEFT` for deletions or `RIGHT` for additions
-  - `startLine` and `startSide`: Include for multi-line comments
-
-For reviews with no existing-thread replies, the REST create-review endpoint remains acceptable.
-Prefer GraphQL for consistency when the Plan contains both new inline comments and existing-thread replies.
-
-#### Error Handling
-
-Take care to avoid duplicate publications; only retry when the call has failed due to a network or server error.
-
-If any publish request fails after creating the pending review, do not retry the same request without inspection.
-
-Inspect the pending review or delete and recreate it before retrying so replies or inline threads are not duplicated.
-
-#### Verification
-
-For successful requests, still audit the response to ensure nothing is missing or incorrect (e.g. line break characters should not appear as literal `\n`).
-A successful submit does not guarantee that all inline comments were created.
+- Use one pending review for the entire publication whenever it includes replies to existing threads, including mixed replies and new inline comments.
+- Create that pending review without submitting it, attach the approved replies and new inline threads, then submit it. When using one GraphQL mutation for content and submission, place submission last.
+- For a review with no existing-thread replies, the REST create-review endpoint remains acceptable.
+- Inspect failed or partial publication before retrying; avoid duplicate replies, threads or reviews.
+- Audit successful responses against the approved Plan. A successful submission does not guarantee that every inline comment was created; verify completeness and correct rendering of newlines.
 
 ### 5. Finalise
 
@@ -385,10 +251,3 @@ Do not preemptively clean up when iteration may still be needed.
 
 Provide the PR link back to the user for verification.
 Do not repeat the review content that has been posted in your response.
-
-### API References
-
-- [GitHub GraphQL `addPullRequestReview`](https://docs.github.com/en/graphql/reference/mutations#addpullrequestreview)
-- [GitHub GraphQL `addPullRequestReviewThreadReply`](https://docs.github.com/en/graphql/reference/mutations#addpullrequestreviewthreadreply)
-- [GitHub GraphQL `submitPullRequestReview`](https://docs.github.com/en/graphql/reference/mutations#submitpullrequestreview)
-- [GitHub REST review comment replies](https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment)

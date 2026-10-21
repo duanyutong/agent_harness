@@ -1,6 +1,6 @@
 ---
 name: coding-standards
-description: Apply shared coding principles and language-specific standards when writing, modifying, or inspecting code. Use for implementation work and local code quality checks independently of a GitHub pull request review.
+description: Apply shared coding principles and language-specific standards when writing or modifying code. Use for implementation work and local code quality checks independently of a GitHub pull request review.
 ---
 
 # Coding Standards

@@ -49,7 +49,7 @@ main() {
   setup_agents=$setup_home/.agents/skills
   setup_claude=$setup_home/.claude/skills
   setup_claude_available=0
-  set -- "$setup_home/.agents"
+  set -- "$setup_home/.agents" "$setup_agents"
   if command -v claude > /dev/null 2>&1; then
     setup_claude_available=1
     set -- "$@" "$setup_home/.claude" "$setup_claude"
@@ -68,22 +68,33 @@ main() {
       conflict "$setup_directory must be absent or a physical directory; resolve it manually."
     fi
   done
-  if [ -e "$setup_agents" ] || [ -L "$setup_agents" ]; then
-    if ! points_to "$setup_agents" "$setup_shared"; then
-      conflict "$setup_agents already exists and does not link to $setup_shared; preserve it and resolve it manually."
+  for setup_skill in "$setup_shared"/*; do
+    [ -d "$setup_skill" ] || continue
+    if [ -L "$setup_skill" ] || [ ! -f "$setup_skill/SKILL.md" ]; then
+      conflict "Expected a physical skill directory containing SKILL.md at $setup_skill."
+      continue
     fi
-  fi
+    setup_destination=$setup_agents/${setup_skill##*/}
+    if [ -e "$setup_destination" ] || [ -L "$setup_destination" ]; then
+      if ! points_to "$setup_destination" "$setup_skill"; then
+        conflict "$setup_destination already exists and does not link to $setup_skill; preserve it and resolve it manually."
+      fi
+    fi
+  done
   [ "$setup_conflicts" -eq 0 ] || fail 'No changes made. Resolve the conflicts and rerun setup.'
 
   mkdir -p "$@"
-  if ! points_to "$setup_agents" "$setup_shared"; then
-    # Target the parent directory so an existing skills link is never followed.
-    # No force flag: a competing installer cannot overwrite an existing entry.
-    if ! ln -s "$setup_shared" "$setup_home/.agents/"; then
-      points_to "$setup_agents" "$setup_shared" || fail "Could not create $setup_agents."
+  for setup_skill in "$setup_shared"/*; do
+    [ -d "$setup_skill" ] || continue
+    setup_destination=$setup_agents/${setup_skill##*/}
+    if ! points_to "$setup_destination" "$setup_skill"; then
+      # Target the parent without forcing replacement of an existing entry.
+      if ! ln -s "$setup_skill" "$setup_agents/"; then
+        points_to "$setup_destination" "$setup_skill" || fail "Could not create $setup_destination."
+      fi
     fi
-  fi
-  printf 'Shared skills: %s -> %s\n' "$setup_agents" "$setup_shared"
+  done
+  printf 'Shared skills directory: %s\n' "$setup_agents"
   if [ "$setup_claude_available" -eq 1 ]; then
     printf 'Claude skills: %s (independent directory)\n' "$setup_claude"
   else
