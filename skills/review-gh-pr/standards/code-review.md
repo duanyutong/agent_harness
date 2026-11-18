@@ -2,7 +2,7 @@
 
 This document provides guidance for conducting effective code reviews.
 
-For general coding principles and best practices, see [principles.md](../../coding-standards/standards/principles.md).
+For general coding principles and best practices, see [principles.md](../../software-standards/standards/principles.md).
 
 ## What to Look For
 
@@ -91,7 +91,7 @@ Replies to existing threads do not need to include `Disposition (issue type):`.
 
 When reviewing or writing code, verify:
 
-- [ ] Code follows all principles in [principles.md](../../coding-standards/standards/principles.md) and applicable language-specific guidelines in [coding-standards](../../coding-standards/SKILL.md)
+- [ ] Code follows all principles in [principles.md](../../software-standards/standards/principles.md) and applicable language-specific guidelines in [software-standards](../../software-standards/SKILL.md)
 - [ ] Design is sound; responsibilities are clearly separated
 - [ ] Code is readable and understandable (e.g. good naming, clear logic, comments where needed)
 - [ ] Comments explain why, not what

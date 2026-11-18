@@ -55,7 +55,7 @@ If fetching fails (e.g. due to auth errors), stop here immediately and alert the
 First check whether the repository provides its own guidelines.
 Prefer these repository-specific guidelines if they conflict with general best practices.
 
-Read the [coding-standards skill](../coding-standards/SKILL.md) and follow its instructions to load the general principles and relevant language-specific standards. Resolve its resource paths relative to that skill's directory. The `coding-standards` skill must be installed alongside this skill.
+Read the [software-standards skill](../software-standards/SKILL.md) and follow its instructions to load the general principles and relevant language-specific standards. Resolve its resource paths relative to that skill's directory. The `software-standards` skill must be installed alongside this skill.
 
 Then load the [code review guidelines](./standards/code-review.md), resolving this path relative to the current skill's directory.
 

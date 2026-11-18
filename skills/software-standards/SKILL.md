@@ -1,9 +1,9 @@
 ---
-name: coding-standards
+name: software-standards
 description: Apply shared coding principles and language-specific standards when writing or modifying code. Use for implementation work and local code quality checks independently of a GitHub pull request review.
 ---
 
-# Coding Standards
+# Software Standards
 
 Apply the shared standards to the requested coding task. Repository-specific guidance takes precedence where it conflicts with these standards.
 
